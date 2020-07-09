@@ -1,8 +1,8 @@
 FROM bubuntux/nordvpn
 
-RUN apk --no-cache --no-progress upgrade && \
-    apk --no-cache --no-progress --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted add dante-server && \
-    rm -rf /tmp/*
+RUN apt-get update \
+    && apt-get install -y dante-server \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY sockd.conf /etc/sockd.conf
 COPY start.sh .
