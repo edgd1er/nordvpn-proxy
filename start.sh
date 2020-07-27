@@ -2,7 +2,7 @@
 
 set -e
 
-/usr/bin/nordVpn.sh > /dev/stdout 2> /dev/stdout &
+/usr/bin/start_vpn.sh > /dev/stdout 2> /dev/stdout &
 
 while true; do
   if [ "$(ip tuntap)" = "" ]; then
@@ -12,4 +12,4 @@ while true; do
   fi
 done
 
-sockd
+/rusty_socks /rusty.toml

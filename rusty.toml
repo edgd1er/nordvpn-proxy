@@ -1,0 +1,2 @@
+listen_interface = "eth0"
+endpoint_interface = "nordlynx"
