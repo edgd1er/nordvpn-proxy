@@ -1,0 +1,29 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+#Variables
+SOURCE_CONF=/config/unbound.conf
+CONF=/etc/unbound/unbound.conf
+DNS=${DNS:-1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com}
+RESOLV=/etc/resolv.conf
+
+#Main
+. /app/date.sh --source-only
+
+echo "$(adddate) INFO: UNBOUND: set configuration dns unbound"
+killall -9 unbound 2>/dev/null || true
+cp -f ${SOURCE_CONF} ${CONF}
+for ip in ${DNS}; do
+	echo "  forward-addr: $ip" >> ${CONF}
+done
+echo "    forward-ssl-upstream: yes" >> ${CONF}
+echo "nameserver 127.0.0.1" > ${RESOLV}
+
+echo "$(adddate) INFO: UNBOUND : start unbound"
+/usr/sbin/unbound -d -c ${CONF}
+
+while true; do
+  sleep 30
+done
+
+echo "$(adddate) INFO: UNBOUND: end unbound"

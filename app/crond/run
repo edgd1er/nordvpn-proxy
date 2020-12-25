@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e -u -o pipefail
+. /app/date.sh --source-only
+
+cronfile='/var/spool/cron/crontabs/root'
+
+echo "$(adddate) INFO: CRON: Removing current cronfile"
+rm -f "$cronfile"
+echo "$(adddate) INFO: CRON: Creating new cronfile"
+touch "$cronfile"
+
+#Add cron for GET_OVPN_FILES
+#printf "$CRON_OVPN_FILES '/app/ovpn/get-ovpn-files.sh'\n" > "$cronfile"
+
+if [[ "${CRON}" ]]; then
+  echo "$(adddate) INFO: CRON: Your cron settings (${CRON}) will be applied!"
+  printf "$CRON '/app/ovpn/get-status-server.sh'" >>"$cronfile"
+  printf "*/5 * * * * /app/ovpn/healthcheck.sh" >>"$cronfile"
+  #Add empty line at the end of file
+  sed -i -e '$a\' $cronfile
+else
+  echo "$(adddate) WARNING: CRON: No cron config, server load will not be checked! This is optional!"
+  exit 1
+fi
+
+crond -f -S -L /var/log/crond.log
