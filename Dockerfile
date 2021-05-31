@@ -21,7 +21,7 @@ ENV OVPN_CONFIG_DIR="/app/ovpn/config" \
 COPY ./app /app
 COPY ./config /config/
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 #hadolint ignore=DL3018
 RUN echo "####### Installing packages #######" && \
     echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \

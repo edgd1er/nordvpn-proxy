@@ -2,7 +2,10 @@ name: build nordvpn proxy multi-arch images
 
 on:
   push:
-    branches: master
+    branches: main
+env:
+  IMAGE: nordvpn-proxy
+  TAG: latest
 
 jobs:
   build:
@@ -16,19 +19,33 @@ jobs:
           dockerfile: ./Dockerfile
       - name: Set up Docker Buildx
         id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v3
+        uses: docker/setup-buildx-action@v1.3.0
         with:
-          buildx-version: latest
-          qemu-version: latest
+          version: latest
+          install: true
+          use: true
+      - name: Builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
-      - name: Docker Login
-        if: github.event_name != 'pull_request'
+      - name: Login to Docker hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v2.5.0
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./Dockerfile
+          # removed linux/arm64
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.TAG }}
+      - name: Inspect image
         run: |
-         echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
-      - name: Run Buildx
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64 --output "type=image,push=true" --file ./Dockerfile ./ -t edgd1er/nordvpn-proxy:latest
+          docker buildx imagetools inspect ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.TAG }}
       - name: clean
         if: always() && github.event_name != 'pull_request'
         run: |
