@@ -40,7 +40,7 @@ jobs:
           context: .
           file: ./Dockerfile
           # removed linux/arm64
-          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7
           push: true
           tags: ${{ secrets.DOCKER_USER }}/${{ env.IMAGE }}:${{ env.TAG }}
       - name: Inspect image

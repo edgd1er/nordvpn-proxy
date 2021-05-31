@@ -1,5 +1,5 @@
-FROM alpine:3.13
-LABEL maintainer=edgd1er@hotmail.com
+FROM alpine:3.13.5
+LABEL maintainer=edgd1er
 
 EXPOSE 1080
 
