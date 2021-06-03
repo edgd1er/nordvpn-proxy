@@ -2,7 +2,6 @@ version: '3.8'
 services:
   proxy:
     image: edgd1er/nordvpn-proxy:latest
-    #image: bubuntux/nordvpn:latest
     build:
       context: .
       dockerfile: Dockerfile
