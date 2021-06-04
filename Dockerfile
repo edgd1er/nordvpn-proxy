@@ -1,4 +1,4 @@
-FROM alpine:3.13.5
+FROM alpine:3
 LABEL maintainer=edgd1er
 
 EXPOSE 1080
@@ -24,8 +24,8 @@ COPY ./config /config/
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 #hadolint ignore=DL3018
 RUN echo "####### Installing packages #######" && \
-    echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
-    && apk --no-cache --update add bash wget curl runit tzdata jq ip6tables ufw@community openvpn shadow bind-tools \
+    echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    apk --no-cache --update add bash wget curl runit tzdata jq ip6tables ufw@community openvpn shadow bind-tools \
     openssh dante-server ca-certificates unzip unbound openvpn dante-server wget ca-certificates unzip unbound runit && \
 	mkdir -p /openvpn/ && \
 	echo "####### Removing cache #######" && \
