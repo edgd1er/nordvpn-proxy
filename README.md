@@ -1,4 +1,6 @@
-![build nordvpn-proxy multi-arch images](https://github.com/edgd1er/nordvpn-proxy/workflows/build%20nordvpn-proxy%20multi-arch%20images/badge.svg)
+[![lint nordvpn proxy dockerfile](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml)
+
+[![build nordvpn proxy multi-arch images](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml)
 
 # nordvpn-proxy
 
@@ -13,9 +15,9 @@ Whenever the connection is lost the unbound and sock daemon are killed, disconne
 This image is largely based on [jeroenslot/nordvpn-proxy](https://github.com/Joentje/nordvpn-proxy) with dante free socks server added. 
 you can then expose port `1080` from the container to access the VPN connection via the SOCKS5 proxy.
 
-In short, this container:
+To sum up, this container:
 * Opens the best connection to NordVPN using openvpn and the conf downloaded using NordVpn API according to your criteria.
-* Start a dns server for container resolution
+* Starts a dns server for container resolution
 * Starts a SOCKS5 proxy that routes `eth0` to `tun0` with [dante-server](https://www.inet.no/dante/).
 
 The main advantage is that you get the best recommendation for each selection.
