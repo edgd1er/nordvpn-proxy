@@ -1,8 +1,14 @@
-[![lint nordvpn proxy dockerfile](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml)
-
-[![build nordvpn proxy multi-arch images](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml)
-
 # nordvpn-proxy
+
+[![lint dockerfile](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/lint.yml)
+
+[![build multi-arch images](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml/badge.svg?branch=main)](https://github.com/edgd1er/nordvpn-proxy/actions/workflows/buildPush.yml)
+
+![Docker Size](https://badgen.net/docker/size/edgd1er/nordvpn-proxy?icon=docker&label=Size)
+![Docker Pulls](https://badgen.net/docker/pulls/edgd1er/nordvpn-proxy?icon=docker&label=Pulls)
+![Docker Stars](https://badgen.net/docker/stars/edgd1er/nordvpn-proxy?icon=docker&label=Stars)
+![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordvpn-proxy?icon=docker&label=Layers)
+
 
 This is a NordVPN client docker container that use the recommended NordVPN servers, and opens a SOCKS5 proxy.
 
@@ -43,4 +49,29 @@ The container is expecting three informations to select the vpn server:
 ```bash
 docker run -it --rm --cap-add NET_ADMIN -p 1080:1080 -e NORDVPN_USER=<email> -e NORDVPN_PASS='<pass>' -e NORDVPN_COUNTRY=Poland
  -e NORDVPN_PROTOCOL=udp -e NORDVPN_CATEGORY=p2p   edgd1er/nordvpn-proxy
+```
+
+```yaml
+version: '3.8'
+services:
+  proxy:
+    image: edgd1er/nordvpn-proxy:latest
+    restart: unless-stopped
+    ports:
+      - "1080:1080"
+    devices:
+      - /dev/net/tun
+    sysctls:
+      - net.ipv4.conf.all.rp_filter=2
+    cap_add:
+      - SYS_MODULE
+      - NET_ADMIN
+    environment:
+      - TZ=Europe/Paris
+      - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
+      - NORDVPN_USER=<email>
+      - NORDVPN_PASS='<pass>'
+      - NORDVPN_COUNTRY=estonia
+      - NORDVPN_PROTOCOL=udp
+      - NORDVPN_CATEGORY=p2p
 ```

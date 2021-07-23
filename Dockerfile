@@ -26,7 +26,7 @@ SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 RUN echo "####### Installing packages #######" && \
     echo "@community http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
     apk --no-cache --update add bash wget curl runit tzdata jq ip6tables ufw@community openvpn shadow bind-tools \
-    openssh dante-server ca-certificates unzip unbound openvpn dante-server wget ca-certificates unzip unbound && \
+    openssh dante-server ca-certificates unzip unbound && \
 	mkdir -p /openvpn/ && \
 	echo "####### Removing cache #######" && \
 	rm -rf /*.zip -- /var/cache/apk/* && \

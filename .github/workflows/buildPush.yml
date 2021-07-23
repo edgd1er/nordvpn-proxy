@@ -1,6 +1,7 @@
 name: build nordvpn proxy multi-arch images
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
