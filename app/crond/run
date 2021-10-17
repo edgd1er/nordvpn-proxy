@@ -10,12 +10,13 @@ echo "$(adddate) INFO: CRON: Creating new cronfile"
 touch "$cronfile"
 
 #Add cron for GET_OVPN_FILES
-#printf "$CRON_OVPN_FILES '/app/ovpn/get-ovpn-files.sh'\n" > "$cronfile"
+#printf "$CRON_OVPN_FILES '/app/openvpn/get-ovpn-files.sh'\n" > "$cronfile"
+echo "*/5 * * * * /app/openvpn/healthcheck.sh" >>"$cronfile"
+echo "*/1 * * * * /app/openvpn/resolvcheck.sh" >>"$cronfile"
 
 if [[ "${CRON}" ]]; then
   echo "$(adddate) INFO: CRON: Your cron settings (${CRON}) will be applied!"
-  printf "$CRON '/app/ovpn/get-status-server.sh'" >>"$cronfile"
-  printf "*/5 * * * * /app/ovpn/healthcheck.sh" >>"$cronfile"
+  printf "$CRON '/app/openvpn/get-status-server.sh'\n" >>"$cronfile"
   #Add empty line at the end of file
   sed -i -e '$a\' $cronfile
 else
@@ -23,4 +24,4 @@ else
   exit 1
 fi
 
-crond -f -S -L /var/log/crond.log
+crond -f -S -L /dev/fd/1

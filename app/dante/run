@@ -1,16 +1,27 @@
 #!/bin/bash
 set -e -u -o pipefail
+
+DEBUG=${DEBUG:-0}
+dante_d=''
+[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d9"
+
 . /app/date.sh --source-only
 
 SOURCE_DANTE_CONF=/config/dante.conf
 DANTE_CONF=/etc/sockd.conf
 
 echo "$(adddate) INFO: DANTE: Waiting for tun0 to be up"
-while [[ $(ifconfig tun0  2>&1 | grep -c "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") -eq 0 ]]; do
-  sleep 10
+while [[ $(ifconfig tun0 2>&1 | grep -c "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") -eq 0 ]]; do
+    sleep 10
 done
 
-echo "$(adddate) INFO: DANTE: set configuration socks proxy"
 cp -f ${SOURCE_DANTE_CONF} ${DANTE_CONF}
-
-sockd -N 2 -f ${DANTE_CONF}
+echo "$(adddate) INFO: DANTE: check configuration socks proxy"
+sockd -Vf ${DANTE_CONF}
+echo "$(adddate) INFO: DANTE: set configuration socks proxy"
+if [[ 0 -le $(pgrep sockd) ]]; then
+    sockd -N 2 -f ${DANTE_CONF} ${dante_d}
+else
+    pkill -9 sockd
+    sockd -N 2 -f ${DANTE_CONF} ${dante_d}
+fi

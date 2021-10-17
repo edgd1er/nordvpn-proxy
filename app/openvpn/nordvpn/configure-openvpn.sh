@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -e -u -o pipefail
 #
 # get config name based on api recommendation + ENV Vars (NORDVPN_COUNTRY, NORDVPN_PROTOCOL, NORDVPN_CATEGORY)
 #
@@ -18,8 +19,9 @@
 # 2021/09/15: check ENV values if still supported
 # 2021/09/22: store json results, merged configure-openvpn + updateConfigs.sh: OPENVPN_CONFIG is confusing for users. (#1958)
 
-set -e
 #Variables
+DEBUG=${DEBUG:-0}
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
 TIME_FORMAT=$(date "+%Y-%m-%d %H:%M:%S")
 nordvpn_api="https://api.nordvpn.com"
 nordvpn_dl=downloads.nordcdn.com
@@ -38,26 +40,25 @@ json_technologies=$(curl -s ${nordvpn_api}/v1/technologies)
 possible_categories="$(echo ${json_groups} | jq -r .[].identifier | tr '\n' ', ')"
 possible_country_codes="$(echo ${json_countries} | jq -r .[].code | tr '\n' ', ')"
 possible_country_names="$(echo ${json_countries} | jq -r .[].name | tr '\n' ', ')"
-possible_protocol="$(echo ${json_technologies} | jq -r '.[] | [.identifier, .name ]' | tr '\n' ', ' | grep openvpn )"
-
+possible_protocol="$(echo ${json_technologies} | jq -r '.[] | [.identifier, .name ]' | tr '\n' ', ' | grep openvpn)"
 
 # Functions
 # TESTS: set values to test API response.
-test1NoValues(){
+test1NoValues() {
   export NORDVPN_COUNTRY=''
   export NORDVPN_PROTOCOL=''
   export NORDVPN_CATEGORY=''
   log "expected <your country code><NN>.nordvpn.com.ovpn with openvpn_udp"
 }
 
-test2NoValues(){
+test2NoValues() {
   export NORDVPN_COUNTRY='EE'
   export NORDVPN_PROTOCOL='tcp'
   export NORDVPN_CATEGORY=''
   log "expected ee<NN>.nordvpn.com.ovpn with openvpn_tcp"
 }
 
-test3Incompatible_combinations(){
+test3Incompatible_combinations() {
   export NORDVPN_COUNTRY='EE'
   export NORDVPN_PROTOCOL='openvpn_tcp_tls_crypt'
   export NORDVPN_CATEGORY='legacy_obfuscated_servers'
@@ -168,8 +169,8 @@ download_hostname() {
   fi
 
   # default or defined server name
-    nordvpn_cdn=${nordvpn_cdn}${1}
-    ovpnName=${1}.ovpn
+  nordvpn_cdn=${nordvpn_cdn}${1}
+  ovpnName=${1}.ovpn
 
   # remote filename
   if [[ ${NORDVPN_PROTOCOL,,} == udp ]]; then

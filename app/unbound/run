@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e -u -o pipefail
 
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
 #Variables
 SOURCE_CONF=/config/unbound.conf
 CONF=/etc/unbound/unbound.conf
@@ -11,19 +12,27 @@ RESOLV=/etc/resolv.conf
 . /app/date.sh --source-only
 
 echo "$(adddate) INFO: UNBOUND: set configuration dns unbound"
-killall -9 unbound 2>/dev/null || true
+[[ ! -f /etc/unbound/root.hints ]] && curl -s https://www.internic.net/domain/named.cache -o /etc/unbound/root.hints || true
 cp -f ${SOURCE_CONF} ${CONF}
 for ip in ${DNS}; do
-	echo "  forward-addr: $ip" >> ${CONF}
+    echo "  forward-addr: $ip" >>${CONF}
 done
-echo "    forward-ssl-upstream: yes" >> ${CONF}
-echo "nameserver 127.0.0.1" > ${RESOLV}
+echo "    forward-ssl-upstream: yes" >>${CONF}
 
+if [[ 0 -eq $(grep -c "nameserver 127.0.0.1$" /etc/resolv.conf) ]]; then
+    echo "$(adddate) INFO: UNBOUND : copy original resolv conf"
+    cp ${RESOLV} ${RESOLV}.ori
+    echo "nameserver 127.0.0.1" >${RESOLV}
+fi
+
+echo "$(adddate) INFO: UNBOUND : check unbound conf"
+unbound-checkconf /config/unbound.conf
 echo "$(adddate) INFO: UNBOUND : start unbound"
-/usr/sbin/unbound -d -c ${CONF}
-
-while true; do
-  sleep 30
-done
+/usr/sbin/unbound -dv -c ${CONF}
 
 echo "$(adddate) INFO: UNBOUND: end unbound"
+echo "$(adddate) INFO: UNBOUND : restoring dns resolution conf"
+[[ -f ${RESOLV}.ori ]] && cp ${RESOLV}.ori ${RESOLV}
+while true; do
+    sleep 30
+done

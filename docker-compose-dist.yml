@@ -20,8 +20,18 @@ services:
     environment:
       - TZ=Europe/Paris
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
-      #      - NORDVPN_USER=<email>
-      #      - NORDVPN_PASS='<pass>'
       - NORDVPN_COUNTRY=estonia
       - NORDVPN_PROTOCOL=udp
       - NORDVPN_CATEGORY=p2p
+#      - NORDVPN_LOGIN=<email>
+#      - NORDVPN_PASS='<pass>'
+    secrets:
+      - NORDVPN_LOGIN
+      - NORDVPN_PASS
+
+
+secrets:
+  NORDVPN_LOGIN:
+    file: ./nordvpn_login
+  NORDVPN_PASS:
+    file: ./nordvpn_pwd

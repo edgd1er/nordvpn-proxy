@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -e -u -o pipefail
+
+waitSec=30
+DEBUG=${DEBUG:-0}
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
+
+NORDVPN_PROTOCOL=${NORDVPN_PROTOCOL:-UDP}
+export NORDVPN_PROTOCOL
+
+NORDVPN_CATEGORY=${NORDVPN_CATEGORY:-P2P}
+export NORDVPN_CATEGORY
+
+VPN_PROVIDER_HOME=/app/openvpn/nordvpn/
+export VPN_PROVIDER_HOME
+
+. /app/date.sh --source-only
+# Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
+if [ ! -c /dev/net/tun ]; then
+    echo "$(adddate) INFO: OVPN: Creating tun interface /dev/net/tun"
+    mkdir -p /dev/net
+    mknod /dev/net/tun c 10 200
+    chmod 600 /dev/net/tun
+fi
+
+cd /app/openvpn/nordvpn/
+nbFiles=0
+
+./configure-openvpn.sh
+nbFiles=$(ls -1 *.ovpn | grep -c ovpn)
+confFile=$(ls -1 *.ovpn | grep -v default.ovpn)
+echo ########################################################
+echo "$(adddate) INFO: OVPN: Files found: $nbFiles"
+echo "$(adddate) INFO: OVPN: Current load: $LOAD"
+#echo "$(adddate) INFO: OVPN: Info updated at: $UPDATED_AT"
+#echo "$(adddate) INFO: OVPN: Server IP: $IP"
+echo "$(adddate) INFO: OVPN: config: $confFile"
+echo ########################################################
+
+if [[ ${nbFiles} -eq 0 ]]; then
+    echo "$(adddate) ERROR: OVPN: No OpenVPN config found in $(pwd)/. Exiting."
+    exit 1
+fi
+
+## Update ping options to exit the container, so Docker will restart it
+sed -i "s/^ping.*//g" "$confFile"
+# Add new ones
+echo "inactive 3600" >>"$confFile"
+echo "ping 10" >>"$confFile"
+echo "ping-exit 60" >>"$confFile"
+echo -e "script-security 2\nup /app/openvpn/up.sh\ndown /app/openvpn/down.sh" >>"$confFile"
+
+#Use secrets if present
+if [ -e /run/secrets/NORDVPN_LOGIN ]; then
+  NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_LOGIN)
+  NORDVPN_PASS=$(cat /run/secrets/NORDVPN_PASS)
+fi
+
+if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ]; then
+  log "ERROR: NORDVPN: **********************"
+  log "ERROR: NORDVPN: empty user or password"
+  log "ERROR: NORDVPN: **********************"
+  exit 1
+fi
+
+# add OpenVPN user/pass
+if [[ "${NORDVPN_LOGIN}" == "**None**" ]] || [[ "${NORDVPN_PASS}" == "**None**" ]]; then
+    if [[ ! -f /config/openvpn-credentials.txt ]]; then
+        echo "$(adddate) ERROR: OVPN: OpenVPN credentials not set. Exiting."
+        exit 1
+    fi
+    echo "$(adddate) INFO: OVPN: Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
+else
+    echo "$(adddate) INFO: OVPN: Setting OpenVPN credentials..."
+    mkdir -p /config
+    echo "${NORDVPN_LOGIN}" >/config/openvpn-credentials.txt
+    echo "${NORDVPN_PASS}" >>/config/openvpn-credentials.txt
+    chmod 600 /config/openvpn-credentials.txt
+    sed -i "s#auth-user-pass.*#auth-user-pass /config/openvpn-credentials.txt#g" "/app/openvpn/nordvpn/${confFile}"
+    [[ $DEBUG -eq 1 ]] && cat /app/openvpn/nordvpn/${confFile} || true
+fi
+
+openvpn /app/openvpn/nordvpn/${confFile}
+
+echo "$(adddate) INFO: OVPN: VPN connection lost, stopping unbound"
+echo "$(adddate) INFO: OVPN: Waiting ${waitSec} seconds before restarting"
+sleep ${waitSec}

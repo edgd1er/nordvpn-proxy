@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -e -u -o pipefail
 
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
 #Network check
 # Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks,
 # therefore we use this script to catch error code 2
-HOST=${HEALTH_CHECK_HOST}
+HOST=${HEALTH_CHECK_HOST:-google.com}
 
 . /app/date.sh --source-only
 
@@ -30,14 +32,16 @@ if [[ ${OPENVPN} -ne 1 ]]; then
   exit 1
 fi
 
-ovpnConf=$(find /app/ovpn/nordvpn/ -type f -iname *.ovpn ! -iname default*)
+ovpnConf=$(find /app/openvpn/nordvpn/ -type f -iname *.ovpn ! -iname default*)
 nordvpn_hostname=$(basename ${ovpnConf} | sed "s/.ovpn//")
 expectedIp=$(awk '/remote /{print $2}' ${ovpnConf})
-foundIp=$(curl https://myexternalip.com/raw)
+foundIp=$(curl -s https://myexternalip.com/raw)
 
 if [[ -n ${foundIp} ]]; then
-  if [[ "${foundIp}" == "${expectedIp}" ]]; then
-    pgrep openvpn | xargs kill -15
+  # at least be in the same network
+  if [[ "${foundIp::-3}" != "${expectedIp::-3}" ]]; then
+    echo "$(adddate) HEALTHCHECK: ERROR: effective ip (${foundIp}) if not the expected one (${expectedIp})."
+    exit 1
   fi
 fi
 
