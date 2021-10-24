@@ -15,8 +15,6 @@ services:
     cap_add:
       - SYS_MODULE
       - NET_ADMIN
-    env_file:
-      - nordVpn_Credentials
     environment:
       - TZ=Europe/Paris
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
@@ -25,6 +23,7 @@ services:
       - NORDVPN_CATEGORY=p2p
 #      - NORDVPN_LOGIN=<email>
 #      - NORDVPN_PASS='<pass>'
+      - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
     secrets:
       - NORDVPN_LOGIN
       - NORDVPN_PASS

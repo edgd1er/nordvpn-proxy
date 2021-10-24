@@ -40,11 +40,12 @@ The container is expecting three informations to select the vpn server:
  
 > NOTE: This container works best using the `p2p` technology.
 > 
-> NOTE: At the moment, this container has no kill switch... meaning that when the VPN connection is down, the connection will be rerouted through your provider.
+> NOTE: At the moment, this container has no kill switch... meaning that when the VPN connection is down, the connection will be rerouted through your provider. although, on tunnel down event, the socks server is stopped preventing to relay unprotected requests.   
 
 * DNS to uses external DNS, if none given: "1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com"
-* NORDVPN_USER=email
-* NORDVPN_PASS=pass
+* NORDVPN_USER=email or service user
+* NORDVPN_PASS=pass or service pass
+* EXIT_WHEN_IP_NOTEXPECTED=(0|1) # stop container when detected network is not as expected (based on /24 networks)
 
 ```bash
 docker run -it --rm --cap-add NET_ADMIN -p 1080:1080 -e NORDVPN_USER=<email> -e NORDVPN_PASS='<pass>' -e NORDVPN_COUNTRY=Poland
@@ -75,3 +76,4 @@ services:
       - NORDVPN_PROTOCOL=udp
       - NORDVPN_CATEGORY=p2p
 ```
+

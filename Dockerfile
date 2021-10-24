@@ -40,4 +40,6 @@ RUN    echo "####### Changing permissions #######" && \
 HEALTHCHECK --interval=5m --timeout=20s --start-period=1m \
   CMD if test $( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ; then exit 0; else exit 1; fi
 
+WORKDIR /app
+
 CMD ["runsvdir", "/etc/service/"]

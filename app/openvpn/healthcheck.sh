@@ -14,7 +14,7 @@ if [[ -z "$HOST" ]]; then
   HOST="google.com"
 fi
 
-ping -c 2 -w 5 $HOST # Get at least 2 responses and timeout after 5 seconds
+ping -c 2 -w 5 $HOST 1>/dev/null 2>&1  # Get at least 2 responses and timeout after 5 seconds
 STATUS=$?
 if [[ ${STATUS} -ne 0 ]]; then
   echo "$(adddate) HEALTHCHECK: ERROR, network is down"
@@ -35,13 +35,15 @@ fi
 ovpnConf=$(find /app/openvpn/nordvpn/ -type f -iname *.ovpn ! -iname default*)
 nordvpn_hostname=$(basename ${ovpnConf} | sed "s/.ovpn//")
 expectedIp=$(awk '/remote /{print $2}' ${ovpnConf})
+[[ ${expectedIp} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\. ]] && net_expected=${BASH_REMATCH[*]}
 foundIp=$(curl -s https://myexternalip.com/raw)
+[[ ${foundIp} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\. ]] && net_found=${BASH_REMATCH[*]}
 
 if [[ -n ${foundIp} ]]; then
   # at least be in the same network
-  if [[ "${foundIp::-3}" != "${expectedIp::-3}" ]]; then
-    echo "$(adddate) HEALTHCHECK: ERROR: effective ip (${foundIp}) if not the expected one (${expectedIp})."
-    exit 1
+  if [[ "${net_found}" != "${net_expected}" ]]; then
+    echo "$(adddate) HEALTHCHECK: WARNING: ${nordvpn_hostname} : effective network ${net_found} (real IP:${foundIp}) is not the expected one ${net_expected} (expected ip: ${expectedIp})."
+    [[ 1 -eq ${EXIT_WHEN_IP_NOTEXPECTED:-1} ]] && echo "$(adddate) HEALTHCHECK: ERROR: exiting as requested per EXIT_WHEN_IP_NOTEXPECTED" && exit 1
   fi
 fi
 

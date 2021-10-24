@@ -1,4 +1,7 @@
 .idea/**
+*.iml
 docker-compose.yml
 nordvpn_login
 nordvpn_pass
+*.sh
+Makefile
