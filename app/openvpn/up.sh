@@ -7,6 +7,6 @@ sleep 10
 [[ ${DEBUG:-0} -eq 1 ]] && set -x
 for s in unbound dante
   do
-    echo "$(adddate) INFO: OPENVPN: up: start ${s}"
+    echo "$(adddate) INFO: OPENVPN: up: starting ${s}"
     sv start ${s}
 done

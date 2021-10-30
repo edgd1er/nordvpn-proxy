@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+DEBUG=${DEBUG:-0}
+
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
+
+. /app/date.sh --source-only
+
+log "########################################################"
+log "INFO: dante: stopping"
+[[ -f /run/sockd.pid ]] && kill $(cat /run/sockd.pid)
+sleep 1
+for p in $(pgrep sockd); do kill -9 $p; done

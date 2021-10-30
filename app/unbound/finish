@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+DEBUG=${DEBUG:-0}
+
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
+
+. /app/date.sh --source-only
+
+log "########################################################"
+log "INFO: unbound: stopping"
+[[ -f /run/unbound.pid ]] && kill $(cat /run/unbound.pid)
+sleep 1
+for p in $(pgrep unbound); do kill -9 $p; done

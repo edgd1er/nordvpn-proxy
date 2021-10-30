@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+DEBUG=${DEBUG:-0}
+
+[[ ${DEBUG:-0} -eq 1 ]] && set -x
+
+. /etc/service/date.sh --source-only
+
+log "########################################################"
+log "INFO: openvpn: stopping"
+(echo "signal SIGHUP";sleep 1)| telnet ::1 7505
