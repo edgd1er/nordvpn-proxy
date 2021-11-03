@@ -1,6 +1,6 @@
 #!/bin/bash
 
 #Date function
-adddate() {
-    echo "$(date +"%Y-%m-%d %T")"
+log() {
+    echo "$(date +"%Y-%m-%d %T"): $*"
 }

@@ -9,4 +9,4 @@ DEBUG=${DEBUG:-0}
 
 log "########################################################"
 log "INFO: openvpn: stopping"
-(echo "signal SIGHUP";sleep 1)| telnet ::1 7505
+(echo "signal SIGHUP";sleep 1)| telnet localhost 7505

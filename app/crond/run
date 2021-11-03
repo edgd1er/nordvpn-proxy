@@ -1,26 +1,26 @@
 #!/bin/bash
 set -e -u -o pipefail
-. /app/date.sh --source-only
+. /etc/service/date.sh --source-only
 
 cronfile='/var/spool/cron/crontabs/root'
 
-echo "$(adddate) INFO: CRON: Removing current cronfile"
+log "INFO: CRON: Removing current cronfile"
 rm -f "$cronfile"
-echo "$(adddate) INFO: CRON: Creating new cronfile"
+log "INFO: CRON: Creating new cronfile"
 touch "$cronfile"
 
 #Add cron for GET_OVPN_FILES
-#printf "$CRON_OVPN_FILES '/app/openvpn/get-ovpn-files.sh'\n" > "$cronfile"
-echo "*/5 * * * * /app/openvpn/healthcheck.sh" >>"$cronfile"
-echo "*/1 * * * * /app/openvpn/resolvcheck.sh" >>"$cronfile"
+#printf "$CRON_OVPN_FILES '/etc/service/openvpn/get-ovpn-files.sh'\n" > "$cronfile"
+echo "*/5 * * * * /etc/service/openvpn/healthcheck.sh" >>"$cronfile"
+echo "*/1 * * * * /etc/service/openvpn/resolvcheck.sh" >>"$cronfile"
 
 if [[ "${CRON}" ]]; then
-  echo "$(adddate) INFO: CRON: Your cron settings (${CRON}) will be applied!"
-  printf "$CRON '/app/openvpn/get-status-server.sh'\n" >>"$cronfile"
+  log "INFO: CRON: Your cron settings (${CRON}) will be applied!"
+  printf "$CRON '/etc/service/openvpn/get-status-server.sh'\n" >>"$cronfile"
   #Add empty line at the end of file
   sed -i -e '$a\' $cronfile
 else
-  echo "$(adddate) WARNING: CRON: No cron config, server load will not be checked! This is optional!"
+  log "WARNING: CRON: No cron config, server load will not be checked! This is optional!"
   exit 1
 fi
 

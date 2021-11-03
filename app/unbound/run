@@ -9,9 +9,9 @@ DNS=${DNS:-1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com}
 RESOLV=/etc/resolv.conf
 
 #Main
-. /app/date.sh --source-only
+. /etc/service/date.sh --source-only
 
-echo "$(adddate) INFO: UNBOUND: set configuration dns unbound"
+log "INFO: UNBOUND: set configuration dns unbound"
 [[ ! -f /etc/unbound/root.hints ]] && curl -s https://www.internic.net/domain/named.cache -o /etc/unbound/root.hints || true
 cp -f ${SOURCE_CONF} ${CONF}
 for ip in ${DNS}; do
@@ -20,18 +20,18 @@ done
 echo "    forward-ssl-upstream: yes" >>${CONF}
 
 if [[ 0 -eq $(grep -c "nameserver 127.0.0.1$" /etc/resolv.conf) ]]; then
-    echo "$(adddate) INFO: UNBOUND : copy original resolv conf"
+    log "INFO: UNBOUND : copy original resolv conf"
     cp ${RESOLV} ${RESOLV}.ori
     echo "nameserver 127.0.0.1" >${RESOLV}
 fi
 
-echo "$(adddate) INFO: UNBOUND : check unbound conf"
+log "INFO: UNBOUND : check unbound conf"
 unbound-checkconf /config/unbound.conf
-echo "$(adddate) INFO: UNBOUND : start unbound"
+log "INFO: UNBOUND : start unbound"
 /usr/sbin/unbound -dv -c ${CONF}
 
-echo "$(adddate) INFO: UNBOUND: end unbound"
-echo "$(adddate) INFO: UNBOUND : restoring dns resolution conf"
+log "INFO: UNBOUND: end unbound"
+log "INFO: UNBOUND : restoring dns resolution conf"
 [[ -f ${RESOLV}.ori ]] && cp ${RESOLV}.ori ${RESOLV}
 while true; do
     sleep 30

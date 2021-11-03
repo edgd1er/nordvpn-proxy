@@ -5,7 +5,7 @@ DEBUG=${DEBUG:-0}
 
 [[ ${DEBUG:-0} -eq 1 ]] && set -x
 
-. /app/date.sh --source-only
+. /etc/service/date.sh --source-only
 
 log "########################################################"
 log "INFO: unbound: stopping"

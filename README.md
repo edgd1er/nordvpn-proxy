@@ -10,11 +10,12 @@
 ![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordvpn-proxy?icon=docker&label=Layers)
 
 
-This is a NordVPN client docker container that use the recommended NordVPN servers, and opens a SOCKS5 proxy.
+This is a NordVPN client docker container using openvpn that use the recommended NordVPN servers, and opens a SOCKS5 (dante server) and http proxy (tinyproxy).
 
 Added docker image version for raspberry.  
 
-Whenever the connection is lost the unbound and sock daemon are killed, disconnecting all active connections.
+Whenever the connection is lost the unbound, tinyproxy and sock daemon are killed, disconnecting all active connections.
+
 
 ## What is this?
 
@@ -70,10 +71,21 @@ services:
     environment:
       - TZ=Europe/Paris
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
-      - NORDVPN_USER=<email>
-      - NORDVPN_PASS='<pass>'
-      - NORDVPN_COUNTRY=estonia
+      - NORDVPN_COUNTRY=germany
       - NORDVPN_PROTOCOL=udp
       - NORDVPN_CATEGORY=p2p
+      - DEBUG=0
+      - NORDVPN_LOGIN=<email> #Not required if using secrets
+      - NORDVPN_PASS=<pass> #Not required if using secrets
+      - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
+    secrets:
+        - NORDVPN_LOGIN
+        - NORDVPN_PASS
+
+secrets:
+    NORDVPN_LOGIN:
+        file: ./nordvpn_login
+    NORDVPN_PASS:
+        file: ./nordvpn_pass
 ```
 

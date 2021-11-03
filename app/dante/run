@@ -1,25 +1,31 @@
 #!/bin/bash
 set -e -u -o pipefail
 
+#debug or not dante server
 DEBUG=${DEBUG:-0}
+#define what is log when going client/socks block
+danteloglevel=error
 dante_d=''
-[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d9"
+[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d1" && danteloglevel="connect disconnect error data"|| true
 
-. /app/date.sh --source-only
+. /etc/service/date.sh --source-only
 
 SOURCE_DANTE_CONF=/config/dante.conf
 DANTE_CONF=/etc/sockd.conf
 
-echo "$(adddate) INFO: DANTE: Waiting for tun0 to be up"
+export INTERFACE=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
+eval "echo \"$(cat ${SOURCE_DANTE_CONF})\"" > ${DANTE_CONF}
+
+log "INFO: DANTE: Waiting for tun0 to be up"
 while [[ $(ifconfig tun0 2>&1 | grep -c "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") -eq 0 ]]; do
     sleep 10
 done
 
-cp -f ${SOURCE_DANTE_CONF} ${DANTE_CONF}
-echo "$(adddate) INFO: DANTE: check configuration socks proxy"
+log "INFO: DANTE: check configuration socks proxy"
 sockd -Vf ${DANTE_CONF}
-echo "$(adddate) INFO: DANTE: set configuration socks proxy"
-if [[ 0 -le $(pgrep sockd) ]]; then
+
+log "INFO: DANTE: set configuration socks proxy"
+if [[ 0 -le $(pgrep sockd | wc -l) ]]; then
     sockd -N 2 -f ${DANTE_CONF} ${dante_d}
 else
     pkill -9 sockd

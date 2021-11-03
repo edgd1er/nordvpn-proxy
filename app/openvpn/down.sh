@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-. /app/date.sh --source-only
-
+. /etc/service/date.sh --source-only
 [[ ${DEBUG:-0} -eq 1 ]] && set -x
-for s in unbound dante
+
+#execute up/down scripts if present
+[[ -f /etc/openvpn/down.sh ]] && bash -x /etc/openvpn/down.sh
+
+for s in unbound dante tinyproxy
   do
-    echo "$(adddate) INFO: OPENVPN: down: stopping ${s}"
+    log "INFO: OPENVPN: down: stopping ${s}"
     sv stop ${s}
 done
