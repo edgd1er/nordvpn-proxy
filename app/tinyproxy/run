@@ -3,16 +3,21 @@ set -e -u -o pipefail
 
 [[ ${DEBUG:-0} -eq 1 ]] && set -x
 #Variables
+. /etc/service/date.sh --source-only
 SOURCE_CONF=/config/tinyproxy.conf
 CONF=/etc/tinyproxy/tinyproxy.conf
 TINYPORT=${TINYPORT:-8888}
+#Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+TINYLOGLEVEL=${TINYLOGLEVEL:-Info}
+EXT_IP=$(ip addr show tun0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
+INT_IP=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
 
 #Main
-. /etc/service/date.sh --source-only
+log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP}"
+sed "s/TINYPORT/${TINYPORT}/" ${SOURCE_CONF} > ${CONF}
+sed -i "s/TINYLOGLEVEL/${TINYLOGLEVEL}/" ${CONF}
+sed -i "s/#Listen .*/Listen ${INT_IP}/" ${CONF}
 
-log "INFO: TINYPROXY: set configuration "
-
-eval "echo \"$(cat ${SOURCE_CONF})\"" > ${CONF}
 #Allow only local network or all private address ranges
 if [[ -n ${LOCAL_NETWORK} ]];then
     sed -i "s!#Allow LOCAL_NETWORK!Allow ${LOCAL_NETWORK}!" ${CONF}

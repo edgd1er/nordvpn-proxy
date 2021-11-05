@@ -24,6 +24,12 @@ services:
 #      - NORDVPN_LOGIN=<email>
 #      - NORDVPN_PASS='<pass>'
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
+      - LOCAL_NETWORK=192.168.53.0/24
+      - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
+      - TINYLOGLEVEL=Info #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+      - DANTE_LOGLEVEL= #Optional, error by default, available values: connect disconnect error data
+      - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
+      - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
       - NORDVPN_LOGIN
       - NORDVPN_PASS

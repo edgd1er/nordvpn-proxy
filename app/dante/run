@@ -1,21 +1,22 @@
 #!/bin/bash
 set -e -u -o pipefail
 
-#debug or not dante server
-DEBUG=${DEBUG:-0}
-#define what is log when going client/socks block
-danteloglevel=error
+SOURCE_DANTE_CONF=/config/sockd.conf
+DANTE_CONF=/etc/sockd.conf
 dante_d=''
-[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d1" && danteloglevel="connect disconnect error data"|| true
+DEBUG=${DEBUG:-0}
+DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-error}
+[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d9" && DANTE_LOGLEVEL=${DANTE_LOGLEVEL-"connect disconnect error data"}
 
 . /etc/service/date.sh --source-only
 
-SOURCE_DANTE_CONF=/config/dante.conf
-DANTE_CONF=/etc/sockd.conf
-
 export INTERFACE=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
 eval "echo \"$(cat ${SOURCE_DANTE_CONF})\"" > ${DANTE_CONF}
+sed "s/INTERFACE/${INTERFACE}/" ${SOURCE_DANTE_CONF} > ${DANTE_CONF}
+[[ -n ${DANTE_LOGLEVEL} ]] && sed -i "s/log: error/log: ${DANTE_LOGLEVEL}" ${DANTE_CONF}
+[[ -n ${DANTE_ERRORLOG} ]] && sed -i "s#errorlog: /dev/null#errorlog: ${DANTE_ERRORLOG}#" ${DANTE_CONF}
 
+log "########################################################"
 log "INFO: DANTE: Waiting for tun0 to be up"
 while [[ $(ifconfig tun0 2>&1 | grep -c "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") -eq 0 ]]; do
     sleep 10
@@ -23,11 +24,12 @@ done
 
 log "INFO: DANTE: check configuration socks proxy"
 sockd -Vf ${DANTE_CONF}
-
 log "INFO: DANTE: set configuration socks proxy"
-if [[ 0 -le $(pgrep sockd | wc -l) ]]; then
-    sockd -N 2 -f ${DANTE_CONF} ${dante_d}
+if [[ 0 -le $(ps -ef | grep -c sockd) ]]; then
+    sockd -N 2 -f ${DANTE_CONF}
 else
     pkill -9 sockd
-    sockd -N 2 -f ${DANTE_CONF} ${dante_d}
+    sockd -N 2 -f ${DANTE_CONF}
 fi
+
+sleep 5

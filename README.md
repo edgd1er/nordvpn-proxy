@@ -12,9 +12,11 @@
 
 This is a NordVPN client docker container using openvpn that use the recommended NordVPN servers, and opens a SOCKS5 (dante server) and http proxy (tinyproxy).
 
+VPN servers selection is performed through nordnvpn API.(country, technology, protocol)
+
 Added docker image version for raspberry.  
 
-Whenever the connection is lost the unbound, tinyproxy and sock daemon are killed, disconnecting all active connections.
+Whenever the connection is lost the unbound, tinyproxy and sock daemons are killed, disconnecting all active connections (tunnel down event).
 
 
 ## What is this?
@@ -69,15 +71,20 @@ services:
       - SYS_MODULE
       - NET_ADMIN
     environment:
-      - TZ=Europe/Paris
+      - TZ=America/Chicago
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
       - NORDVPN_COUNTRY=germany
       - NORDVPN_PROTOCOL=udp
       - NORDVPN_CATEGORY=p2p
-      - DEBUG=0
       - NORDVPN_LOGIN=<email> #Not required if using secrets
       - NORDVPN_PASS=<pass> #Not required if using secrets
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
+      - LOCAL_NETWORK=192.168.53.0/24
+      - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
+      - TINYLOGLEVEL=Info #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+      - DANTE_LOGLEVEL= #Optional, error by default, available values: connect disconnect error data
+      - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
+      - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
         - NORDVPN_LOGIN
         - NORDVPN_PASS
