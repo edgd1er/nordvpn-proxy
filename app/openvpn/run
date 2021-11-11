@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
+nbFiles=0
 waitSec=30
 DEBUG=${DEBUG:-0}
+OPENVPN_LOGLEVEL=${OPENVPN_LOGLEVEL:-0}
+OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS:-""}
+SOCKET="/run/openvpn.sock"
 [[ ${DEBUG:-0} -eq 1 ]] && set -x
 
 NORDVPN_PROTOCOL=${NORDVPN_PROTOCOL:-UDP}
@@ -11,7 +15,7 @@ export NORDVPN_PROTOCOL
 NORDVPN_CATEGORY=${NORDVPN_CATEGORY:-P2P}
 export NORDVPN_CATEGORY
 
-VPN_PROVIDER_HOME=/etc/service/openvpn/nordvpn/
+VPN_PROVIDER_HOME=/etc/service/openvpn/nordvpn
 export VPN_PROVIDER_HOME
 
 . /etc/service/date.sh --source-only
@@ -23,10 +27,7 @@ if [ ! -c /dev/net/tun ]; then
     chmod 600 /dev/net/tun
 fi
 
-cd ${VPN_PROVIDER_HOME}
-nbFiles=0
-
-./configure-openvpn.sh
+${VPN_PROVIDER_HOME}/configure-openvpn.sh
 nbFiles=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -c ovpn)
 confFile=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -v default.ovpn)
 echo ########################################################
@@ -38,7 +39,7 @@ log "INFO: OVPN: config: $confFile"
 echo ########################################################
 
 if [[ ${nbFiles} -eq 0 ]]; then
-    log "ERROR: OVPN: No OpenVPN config found in $(pwd)/. Exiting."
+    log "ERROR: OVPN: No OpenVPN config found in ${VPN_PROVIDER_HOME}/. Exiting."
     exit 1
 fi
 
@@ -48,7 +49,8 @@ sed -i "s/^ping.*//g" "$confFile"
 echo "inactive 3600" >>"$confFile"
 echo "ping 10" >>"$confFile"
 echo "ping-exit 60" >>"$confFile"
-echo -e "management localhost 7505\nscript-security 2\n--up /etc/service/openvpn/up.sh\n--down /etc/service/openvpn/down.sh" >>"$confFile"
+echo -e "management ${SOCKET} unix\nscript-security 2\n--up /etc/service/openvpn/up.sh\n--down /etc/service/openvpn/down.sh" >>"$confFile"
+[[ -n ${OPENVPN_LOGLEVEL} ]] && OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS}" --verb ${OPENVPN_LOGLEVEL}" #sed -i "s/verb.*/verb ${OPENVPN_LOGLEVEL}/g" ${destConf}
 
 #Use secrets if present
 if [ -e /run/secrets/NORDVPN_LOGIN ]; then
@@ -91,7 +93,8 @@ if [[ -n ${LOCAL_NETWORK:-""} ]]; then
     done
   fi
 fi
-openvpn --config ${confFile}
+
+openvpn --config ${confFile} ${OPENVPN_PARAMETERS}
 
 log "INFO: OVPN: VPN connection lost, stopping unbound"
 log "INFO: OVPN: Waiting ${waitSec} seconds before restarting"

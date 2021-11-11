@@ -2,6 +2,7 @@
 set -e -u -o pipefail
 
 DEBUG=${DEBUG:-0}
+SOCKET="unix-connect:/run/openvpn.sock"
 
 [[ ${DEBUG:-0} -eq 1 ]] && set -x
 
@@ -9,4 +10,4 @@ DEBUG=${DEBUG:-0}
 
 log "########################################################"
 log "INFO: openvpn: stopping"
-(echo "signal SIGHUP";sleep 1)| telnet localhost 7505
+(echo "signal SIGHUP";sleep 1)| socat -s - ${SOCKET}

@@ -25,7 +25,7 @@ SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 RUN echo "####### Installing packages #######" && \
     echo "@community https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
     apk --no-cache --update add bash wget curl runit tzdata jq ip6tables ufw@community openvpn shadow bind-tools \
-    openssh dante-server ca-certificates unzip unbound busybox-extras vim tinyproxy && \
+    openssh dante-server ca-certificates unzip unbound socat vim tinyproxy && \
 	mkdir -p /openvpn/ -p /etc/service/openvpn /etc/service/dante /etc/service/crond /etc/service/unbound && \
     touch /etc/service/dante/down /etc/service/unbound/down && \
     curl -s https://www.internic.net/domain/named.cache -o /etc/unbound/root.hints && \
