@@ -1,19 +1,23 @@
 #!/bin/bash
 set -e -u -o pipefail
 
-SOURCE_DANTE_CONF=/config/sockd.conf
-DANTE_CONF=/etc/sockd.conf
+SOURCE_DANTE_CONF=/config/dante.conf
+DANTE_CONF=/etc/dante.conf
 dante_d=''
 DEBUG=${DEBUG:-0}
-DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-error}
-[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d9" && DANTE_LOGLEVEL=${DANTE_LOGLEVEL-"connect disconnect error data"}
+DANTE_DEBUG=${DEBUG:-0}
+DANTE_LOGLEVEL=${DANTE_LOGLEVEL:-"error"}
+DANTE_ERRORLOG=${DANTE_DANTE_ERRORLOG:-"/dev/null"}
+[[ ${DEBUG:-0} -eq 1 ]] && set -x && dante_d=" -d9" && DANTE_DEBUG=9 && DANTE_LOGLEVEL=${DANTE_LOGLEVEL-"connect disconnect error data"}
+DANTE_LOGLEVEL=${DANTE_LOGLEVEL//\"/}
+DANTE_ERRORLOG=${DANTE_ERRORLOG//\"/}
 
 . /etc/service/date.sh --source-only
 
 export INTERFACE=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
-eval "echo \"$(cat ${SOURCE_DANTE_CONF})\"" > ${DANTE_CONF}
 sed "s/INTERFACE/${INTERFACE}/" ${SOURCE_DANTE_CONF} > ${DANTE_CONF}
-[[ -n ${DANTE_LOGLEVEL} ]] && sed -i "s/log: error/log: ${DANTE_LOGLEVEL}" ${DANTE_CONF}
+sed -i "s/DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}
+[[ -n ${DANTE_LOGLEVEL} ]] && sed -i "s/log: DANTE_LOGLEVEL/log: ${DANTE_LOGLEVEL}/" ${DANTE_CONF}
 [[ -n ${DANTE_ERRORLOG} ]] && sed -i "s#errorlog: /dev/null#errorlog: ${DANTE_ERRORLOG}#" ${DANTE_CONF}
 
 log "########################################################"
