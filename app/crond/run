@@ -4,9 +4,9 @@ set -e -u -o pipefail
 
 cronfile='/var/spool/cron/crontabs/root'
 
-log "INFO: CRON: Removing current cronfile"
+log "CROND: INFO: Removing current cronfile"
 rm -f "$cronfile"
-log "INFO: CRON: Creating new cronfile"
+log "CROND: INFO: Creating new cronfile"
 touch "$cronfile"
 
 #Add cron for GET_OVPN_FILES
@@ -20,7 +20,7 @@ if [[ "${CRON}" ]]; then
   #Add empty line at the end of file
   sed -i -e '$a\' $cronfile
 else
-  log "WARNING: CRON: No cron config, server load will not be checked! This is optional!"
+  log "CROND: WARNING: No cron config, server load will not be checked! This is optional!"
   exit 1
 fi
 
