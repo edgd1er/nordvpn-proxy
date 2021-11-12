@@ -26,8 +26,8 @@ you can then expose port `1080` from the container to access the VPN connection 
 
 To sum up, this container:
 * Opens the best connection to NordVPN using openvpn and the conf downloaded using NordVpn API according to your criteria.
-* Starts a dns server for container resolution
-* Starts a SOCKS5 proxy that routes `eth0` to `tun0` with [dante-server](https://www.inet.no/dante/).
+* Starts a HTTP proxy that route `eth0:8888` to `eth0:1080` (socks server) with [tinyproxy](https://tinyproxy.github.io/)
+* Starts a SOCKS5 proxy that routes `eth0:1080` to `tun0/nordlynx` with [dante-server](https://www.inet.no/dante/).
 
 The main advantage is that you get the best recommendation for each selection.
 
@@ -50,11 +50,6 @@ The container is expecting three informations to select the vpn server:
 * NORDVPN_PASS=pass or service pass
 * EXIT_WHEN_IP_NOTEXPECTED=(0|1) # stop container when detected network is not as expected (based on /24 networks)
 
-```bash
-docker run -it --rm --cap-add NET_ADMIN -p 1080:1080 -e NORDVPN_USER=<email> -e NORDVPN_PASS='<pass>' -e NORDVPN_COUNTRY=Poland
- -e NORDVPN_PROTOCOL=udp -e NORDVPN_CATEGORY=p2p   edgd1er/nordvpn-proxy
-```
-
 ```yaml
 version: '3.8'
 services:
@@ -62,27 +57,31 @@ services:
     image: edgd1er/nordvpn-proxy:latest
     restart: unless-stopped
     ports:
-      - "1080:1080"
-    devices:
-      - /dev/net/tun
+      - "1081:1080" # socks port udp or tcp
+      - "8888:8888/tcp" # http proxy tcp.
+#    devices:
+#      - /dev/net/tun #Optional, will be created if not preset
     sysctls:
       - net.ipv4.conf.all.rp_filter=2
     cap_add:
-      - SYS_MODULE
       - NET_ADMIN
     environment:
       - TZ=America/Chicago
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
-      - NORDVPN_COUNTRY=germany
-      - NORDVPN_PROTOCOL=udp
-      - NORDVPN_CATEGORY=p2p
+#      - NORDVPN_USER=<email>
+#      - NORDVPN_PASS='<pass>'
+      - NORDVPN_COUNTRY=germany #Optional, by default, servers in user's coyntry.
+      - NORDVPN_PROTOCOL=udp #Optional, udp by default, udp or tcp
+      - NORDVPN_CATEGORY=p2p #Optional, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       - NORDVPN_LOGIN=<email> #Not required if using secrets
       - NORDVPN_PASS=<pass> #Not required if using secrets
+      - OPENVPN_PARAMETERS= #optional, empty by default, overrides openvpn config file with parameters
+      - OPENVPN_LOGLEVEL= #Optional, define openvpn verbose level 0-9
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
       - LOCAL_NETWORK=192.168.53.0/24
       - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
-      - TINYLOGLEVEL=Info #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
-      - DANTE_LOGLEVEL= #Optional, error by default, available values: connect disconnect error data
+      - TINYLOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+      - DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
@@ -95,4 +94,18 @@ secrets:
     NORDVPN_PASS:
         file: ./nordvpn_pass
 ```
+#healthcheck
 
+script checks for:
+* proper dnssec resolution
+* openvpn service being up
+* openvpn being connected
+* warns if openvpn remote ip seems not coherent
+
+if any of these fail, services are restarted.
+
+dockerfile healtcheck:
+* use NORDVPN api to validate protection
+```
+if test $( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ; then exit 0; else exit 1; fi 
+```
