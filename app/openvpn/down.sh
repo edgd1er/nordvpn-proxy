@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+#Variables
 . /etc/service/date.sh --source-only
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 #execute up/down scripts if present
 [[ -f /etc/openvpn/down.sh ]] && bash -x /etc/openvpn/down.sh

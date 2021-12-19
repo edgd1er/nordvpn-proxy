@@ -4,7 +4,10 @@ set -e -u -o pipefail
 SOCKET="unix-connect:/run/openvpn.sock"
 EXIT_WHEN_IP_NOTEXPECTED=${EXIT_WHEN_IP_NOTEXPECTED:=0}
 
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
+#Variables
+. /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+
 #Network check
 # Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks,
 # therefore we use this script to catch error code 2

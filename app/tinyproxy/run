@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
 #Variables
 . /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+
 SOURCE_CONF=/config/tinyproxy.conf
 CONF=/etc/tinyproxy/tinyproxy.conf
 TINYPORT=${TINYPORT:-8888}

@@ -7,7 +7,10 @@ DEBUG=${DEBUG:-0}
 OPENVPN_LOGLEVEL=${OPENVPN_LOGLEVEL:-0}
 OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS:-""}
 SOCKET="/run/openvpn.sock"
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
+
+#Variables
+. /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 NORDVPN_PROTOCOL=${NORDVPN_PROTOCOL:-UDP}
 export NORDVPN_PROTOCOL

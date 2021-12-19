@@ -1,12 +1,11 @@
 #!/bin/bash
 set -e -u -o pipefail
 
-DEBUG=${DEBUG:-0}
-SOCKET="unix-connect:/run/openvpn.sock"
-
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
-
+#Variables
 . /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+
+SOCKET="unix-connect:/run/openvpn.sock"
 
 log "########################################################"
 log "INFO: openvpn: stopping"

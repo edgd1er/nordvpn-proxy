@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e -u -o pipefail
 
+#Variables
+. /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+
 SOURCE_DANTE_CONF=/config/dante.conf
 DANTE_CONF=/etc/dante.conf
 dante_d=''
@@ -12,7 +16,6 @@ DANTE_ERRORLOG=${DANTE_DANTE_ERRORLOG:-"/dev/null"}
 DANTE_LOGLEVEL=${DANTE_LOGLEVEL//\"/}
 DANTE_ERRORLOG=${DANTE_ERRORLOG//\"/}
 
-. /etc/service/date.sh --source-only
 
 export INTERFACE=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
 sed "s/INTERFACE/${INTERFACE}/" ${SOURCE_DANTE_CONF} > ${DANTE_CONF}

@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e -u -o pipefail
 
-DEBUG=${DEBUG:-0}
-
-[[ ${DEBUG:-0} -eq 1 ]] && set -x
-
+#Variables
 . /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 log "########################################################"
 log "INFO: unbound: stopping"

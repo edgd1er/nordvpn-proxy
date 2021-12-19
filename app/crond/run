@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e -u -o pipefail
+
+#Variables
 . /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 cronfile='/var/spool/cron/crontabs/root'
 
