@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e -u -o pipefail
 #
 # get config name based on api recommendation + ENV Vars (NORDVPN_COUNTRY, NORDVPN_PROTOCOL, NORDVPN_CATEGORY)
 #
@@ -18,29 +17,19 @@ set -e -u -o pipefail
 #Changes
 # 2021/09/15: check ENV values if still supported
 # 2021/09/22: store json results, merged configure-openvpn + updateConfigs.sh: OPENVPN_CONFIG is confusing for users. (#1958)
+# 2022/01/04: add NORDVPN_SERVER to download the config file based on server's fqdn
+
+set -e -u -o pipefail
 
 #Variables
-[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
-
-TIME_FORMAT=$(date "+%Y-%m-%d %H:%M:%S")
+MAIN_DIR=/etc/service
+[[ -f ${MAIN_DIR}/utils.sh ]] && source ${MAIN_DIR}/utils.sh || true
 nordvpn_api="https://api.nordvpn.com"
 nordvpn_dl=downloads.nordcdn.com
 nordvpn_cdn="https://${nordvpn_dl}/configs/files"
 nordvpn_doc="https://haugene.github.io/docker-transmission-openvpn/provider-specific/#nordvpn"
 possible_protocol="tcp, udp"
-VPN_PROVIDER_HOME=${VPN_PROVIDER_HOME:-/etc/openvpn/nordvpn}
-
-#Nordvpn has a fetch limit, storing json to prevent hitting the limit.
-json_countries=$(curl -s ${nordvpn_api}/v1/servers/countries)
-#groups used for NORDVPN_CATEGORY
-json_groups=$(curl -s ${nordvpn_api}/v1/servers/groups)
-#technologies (NORDVPN_PROTOCOL) not used as only openvpn_udp and openvpn_tcp are tested.
-json_technologies=$(curl -s ${nordvpn_api}/v1/technologies)
-
-possible_categories="$(echo ${json_groups} | jq -r .[].identifier | tr '\n' ', ')"
-possible_country_codes="$(echo ${json_countries} | jq -r .[].code | tr '\n' ', ')"
-possible_country_names="$(echo ${json_countries} | jq -r .[].name | tr '\n' ', ')"
-possible_protocol="$(echo ${json_technologies} | jq -r '.[] | [.identifier, .name ]' | tr '\n' ', ' | grep openvpn)"
+VPN_PROVIDER_HOME=${VPN_PROVIDER_HOME:-${MAIN_DIR}/nordvpn}
 
 # Functions
 # TESTS: set values to test API response.
@@ -65,13 +54,22 @@ test3Incompatible_combinations() {
   log "expected a config file not respecting country filter. + message: Unable to find a server with the specified parameters, using any recommended server"
 }
 
+test4ServerName_given() {
+  unset NORDVPN_COUNTRY
+  export NORDVPN_PROTOCOL='tcp'
+  export NORDVPN_server=''
+  #get first server from US (228) with tcp
+  export NORDVPN_SERVER=$(curl -s 'https://api.nordvpn.com/v1/servers/recommendations?filters\[country_id\]=228&filters\[servers_technologies\]\[identifier\]=openvpn_tcp&limit=1' | jq -r .[].hostname)
+  log "expected a config file for server ${NORDVPN_SERVER}"
+}
+
 # Normal run functions
 log() {
-  printf "${TIME_FORMAT} %b\n" "$*" >/dev/stderr
+  printf "%b\n" "$*" >/dev/stderr
 }
 
 fatal_error() {
-  printf "${TIME_FORMAT} \e[41mERROR:\033[0m %b\n" "$*" >&2
+  printf "\e[41mERROR:\033[0m %b\n" "$*" >&2
   exit 1
 }
 
@@ -151,7 +149,7 @@ select_hostname() { #TODO return multiples
     #hostname=$(curl -s "${nordvpn_api}/v1/servers/recommendations?limit=1" | jq --raw-output ".[].hostname")
     echo ''
   else
-    load=$(curl --silent ${nordvpn_api}/server/stats/${hostname} | jq .percent)
+    load=$(curl -s ${nordvpn_api}/server/stats/${hostname} | jq .percent)
     log "Best server : ${hostname}, load: ${load}"
     echo ${hostname}
   fi
@@ -185,8 +183,8 @@ download_hostname() {
   outfile="-o "${VPN_PROVIDER_HOME}/${ovpnName}
   #when testing script outside of container, display config instead of writing it.
   if [ ! -w ${VPN_PROVIDER_HOME} ]; then
-    log "${VPN_PROVIDER_HOME} is not writable, outputing to stdout"
-    unset outfile
+    log "${VPN_PROVIDER_HOME} is not writable, outputing ${ovpnName} to stdout"
+    outfile=""
   fi
   curl -sSL ${nordvpn_cdn} ${outfile}
 }
@@ -214,8 +212,10 @@ cd "${0%/*}"
 script_init
 checkDNS
 
-log "Removing existing configs in ${VPN_PROVIDER_HOME}"
-#find ${VPN_PROVIDER_HOME} -type f ! -name '*.sh' -delete
+if [[ -d ${VPN_PROVIDER_HOME} ]]; then
+  log "Removing existing configs in ${VPN_PROVIDER_HOME}"
+  find ${VPN_PROVIDER_HOME} -type f ! -name '*.sh' -delete
+fi
 
 #Tests NORDVPN_<COUNTRY, PROTOCOL, CATEGORY> values
 if [[ -n ${NORDVPN_TESTS:-""} ]]; then
@@ -233,16 +233,48 @@ if [[ -n ${NORDVPN_TESTS:-""} ]]; then
     #When incompatibles combinations, no recommended config is given, exit with error log.
     test3Incompatible_combinations
     ;;
+  4)
+    #try to download config file for the given servername
+    test4ServerName_given
+    ;;
   *)
-    log "Warning, tests requested but not found: NORDVPN_TESTS=${NORDVPN_TESTS}"
+    log "Warning, tests requested but not found, expected 1,2,3 or 4, got ${NORDVPN_TESTS}"
+    exit
     ;;
   esac
 fi
 
-#get server name from api (best recommended for NORDVPN_<> if defined)
-selected="$(select_hostname)"
+#get config based on server name
+if [[ -n ${NORDVPN_SERVER} ]]; then
+  selected=${NORDVPN_SERVER}
+  load=$(curl -s ${nordvpn_api}/server/stats/${NORDVPN_SERVER} | jq .percent 2>/dev/null)
+  log "server : ${NORDVPN_SERVER}, load: ${load:-N/A}"
+else
+  #Nordvpn has a fetch limit, storing json to prevent hitting the limit.
+  json_countries=$(curl -s ${nordvpn_api}/v1/servers/countries)
+  #groups used for NORDVPN_CATEGORY
+  json_groups=$(curl -s ${nordvpn_api}/v1/servers/groups)
+  #technologies (NORDVPN_PROTOCOL) not used as only openvpn_udp and openvpn_tcp are tested.
+  json_technologies=$(curl -s ${nordvpn_api}/v1/technologies)
 
+  log "Checking NORDPVN API responses"
+  for po in json_countries json_groups json_technologies; do
+    if [[ $(echo ${!po} | grep -c "<html>") -gt 0 ]]; then
+      msg=$(echo ${!po} | grep -oP "(?<=title>)[^<]+")
+      echo "ERROR, unexpected html content from NORDVPN servers: ${msg}"
+      sleep 30
+      exit
+    fi
+  done
+
+  possible_categories="$(echo ${json_groups} | jq -r .[].identifier | tr '\n' ', ')"
+  possible_country_codes="$(echo ${json_countries} | jq -r .[].code | tr '\n' ', ')"
+  possible_country_names="$(echo ${json_countries} | jq -r .[].name | tr '\n' ', ')"
+  possible_protocol="$(echo ${json_technologies} | jq -r '.[] | [.identifier, .name ]' | tr '\n' ', ' | grep openvpn)"
+
+  #get server name from api (best recommended for NORDVPN_<> if defined)
+  selected="$(select_hostname)"
+fi
 download_hostname ${selected}
 export OPENVPN_CONFIG=${selected}
-
 cd "${0%/*}"

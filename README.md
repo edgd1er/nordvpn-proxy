@@ -40,7 +40,7 @@ The container is expecting three informations to select the vpn server:
 * [NORDVPN_COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
 * [NORDVPN_PROTOCOL](https://api.nordvpn.com/v1/technologies) although many protocols are possible, only tcp or udp are available.
 * [NORDVPN_CATEGORY](https://api.nordvpn.com/v1/servers/groups) although many categories are possible, p2p seems more adapted.
- 
+
 > NOTE: This container works best using the `p2p` technology.
 > 
 > NOTE: At the moment, this container has no kill switch... meaning that when the VPN connection is down, the connection will be rerouted through your provider. although, on tunnel down event, the socks server is stopped preventing to relay unprotected requests.   
@@ -49,6 +49,8 @@ The container is expecting three informations to select the vpn server:
 * NORDVPN_USER=email or service user
 * NORDVPN_PASS=pass or service pass
 * EXIT_WHEN_IP_NOTEXPECTED=(0|1) # stop container when detected network is not as expected (based on /24 networks)
+* NORDVPN_SERVER=<country><#>.nordvpn.com: eg: nl568.nordvpn.com, get configuration based on server's fqdn, bypassing all api's recommendations. Connection may fail when the server is offline or overloaded. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
+* NORDVPN_TESTS=[1-4], simple tests to test basic api filtering functions. 
 
 ```yaml
 version: '3.8'

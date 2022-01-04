@@ -18,16 +18,19 @@ services:
     environment:
       - TZ=Europe/Paris
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
-      - NORDVPN_COUNTRY=estonia
-      - NORDVPN_PROTOCOL=udp
-      - NORDVPN_CATEGORY=p2p
-#      - NORDVPN_LOGIN=<email>
-#      - NORDVPN_PASS='<pass>'
+      #- NORDVPN_COUNTRY=germany #Optional, by default, servers in user's coyntry.
+      - NORDVPN_SERVER=ge11.nordvpn.com #Optional, get config file base on server's name.bypass the api's recommendations. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
+      - NORDVPN_PROTOCOL=udp #Optional, udp by default, udp or tcp
+      - NORDVPN_CATEGORY=p2p #Optional, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
+      - NORDVPN_LOGIN=<email> #Not required if using secrets
+      - NORDVPN_PASS=<pass> #Not required if using secrets
+      - OPENVPN_PARAMETERS= #optional, empty by default, overrides openvpn config file with parameters
+      - OPENVPN_LOGLEVEL= #Optional, define openvpn verbose level 0-9
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
-      - LOCAL_NETWORK=192.168.53.0/24
+      - LOCAL_NETWORK=192.168.0.0/24
       - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
-      - TINYLOGLEVEL=Info #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
-      - DANTE_LOGLEVEL= #Optional, error by default, available values: connect disconnect error data
+      - TINYLOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+      - DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
