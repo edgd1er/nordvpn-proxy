@@ -92,7 +92,7 @@ country_filter() {
                                   (.code|test(\"^${country}$\";\"i\")) ) |
                           .id" | head -n 1)
   fi
-  if [[ -n ${country_id} ]]; then
+  if [[ -n ${country_id:-""} ]]; then
     log "Searching for country : ${country} (${country_id})"
     echo "filters\[country_id\]=${country_id}&"
   else
@@ -109,7 +109,7 @@ group_filter() {
                                   ( .title| test(\"${category}\";\"i\")) ) |
                           .identifier" | head -n 1)
   fi
-  if [[ -n ${identifier} ]]; then
+  if [[ -n ${identifier:-""} ]]; then
     log "Searching for group: ${identifier}"
     echo "filters\[servers_groups\]\[identifier\]=${identifier}&"
   else
@@ -125,7 +125,7 @@ technology_filter() {
     identifier="openvpn_tcp"
   fi
 
-  if [[ -n ${identifier} ]]; then
+  if [[ -n ${identifier:-""} ]]; then
     log "Searching for technology: ${identifier}"
     echo "filters\[servers_technologies\]\[identifier\]=${identifier}&"
   else
@@ -144,7 +144,7 @@ select_hostname() { #TODO return multiples
   filters+="$(technology_filter)"
 
   hostname=$(curl -s "${nordvpn_api}/v1/servers/recommendations?${filters}limit=1" | jq --raw-output ".[].hostname")
-  if [[ -z ${hostname} ]]; then
+  if [[ -z ${hostname:-""} ]]; then
     log "Warning, unable to find a server with the specified parameters, please review your parameters, NORDVPN_COUNTRY=${NORDVPN_COUNTRY}, NORDVPN_CATEGORY=${NORDVPN_CATEGORY}, NORDVPN_PROTOCOL=${NORDVPN_PROTOCOL}"
     #hostname=$(curl -s "${nordvpn_api}/v1/servers/recommendations?limit=1" | jq --raw-output ".[].hostname")
     echo ''
@@ -245,7 +245,7 @@ if [[ -n ${NORDVPN_TESTS:-""} ]]; then
 fi
 
 #get config based on server name
-if [[ -n ${NORDVPN_SERVER} ]]; then
+if [[ -n ${NORDVPN_SERVER:-""} ]]; then
   selected=${NORDVPN_SERVER}
   load=$(curl -s ${nordvpn_api}/server/stats/${NORDVPN_SERVER} | jq .percent 2>/dev/null)
   log "server : ${NORDVPN_SERVER}, load: ${load:-N/A}"

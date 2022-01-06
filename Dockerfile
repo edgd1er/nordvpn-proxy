@@ -9,6 +9,7 @@ ENV OVPN_CONFIG_DIR="/app/openvpn/config" \
   NORDVPN_USER="" \
   NORDVPN_PASS="" \
   NORDVPN_COUNTRY="" \
+  NORDVPN_SERVER="" \
   NORDVPN_CATEGORY="" \
   NORDVPN_PROTOCOL="openvpn_tcp" \
   LOAD=75 \

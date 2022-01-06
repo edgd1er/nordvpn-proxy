@@ -35,7 +35,7 @@ nbFiles=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -c ovpn)
 confFile=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -v default.ovpn)
 echo ########################################################
 log "INFO: OVPN: Files found: $nbFiles"
-log "INFO: OVPN: Current load: $LOAD"
+#log "INFO: OVPN: Current load: $LOAD"
 #log "INFO: OVPN: Info updated at: $UPDATED_AT"
 #log "INFO: OVPN: Server IP: $IP"
 log "INFO: OVPN: config: $confFile"
