@@ -19,7 +19,7 @@ services:
       - TZ=Europe/Paris
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
       #- NORDVPN_COUNTRY=germany #Optional, by default, servers in user's coyntry.
-      - NORDVPN_SERVER=ge11.nordvpn.com #Optional, get config file base on server's name.bypass the api's recommendations. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
+      - NORDVPN_SERVER=de10.nordvpn.com #Optional, get config file base on server's name.bypass the api's recommendations. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
       - NORDVPN_PROTOCOL=udp #Optional, udp by default, udp or tcp
       - NORDVPN_CATEGORY=p2p #Optional, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       - NORDVPN_LOGIN=<email> #Not required if using secrets
@@ -27,6 +27,7 @@ services:
       - OPENVPN_PARAMETERS= #optional, empty by default, overrides openvpn config file with parameters
       - OPENVPN_LOGLEVEL= #Optional, define openvpn verbose level 0-9
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
+      - WRITE_OVPN_STATUS=1 # 0/1 write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status_file
       - LOCAL_NETWORK=192.168.0.0/24
       - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       - TINYLOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info

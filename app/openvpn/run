@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
+
+#Variables
+. /etc/service/date.sh --source-only
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 nbFiles=0
 waitSec=30
 DEBUG=${DEBUG:-0}
 OPENVPN_LOGLEVEL=${OPENVPN_LOGLEVEL:-0}
 OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS:-""}
 SOCKET="/run/openvpn.sock"
-
-#Variables
-. /etc/service/date.sh --source-only
-[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 NORDVPN_PROTOCOL=${NORDVPN_PROTOCOL:-UDP}
 export NORDVPN_PROTOCOL

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
-SOCKET="unix-connect:/run/openvpn.sock"
 EXIT_WHEN_IP_NOTEXPECTED=${EXIT_WHEN_IP_NOTEXPECTED:=0}
+WRITE_OVPN_STATUS=${WRITE_OVPN_STATUS:=0}
 
 #Variables
 . /etc/service/date.sh --source-only
@@ -25,10 +25,10 @@ check_dnssec() {
     msg="SERVAIL expected not found."
   fi
   if [[ -z ${dns_ip_expected} ]]; then
-    [[ 0 -le ${#msg} ]] && msg="${msg}, "
-    msg="${msg}ip expected, none"
+    [[ 1 -le ${#msg} ]] && msg="${msg}, " || true
+    msg="${msg} ip expected, none"
   fi
-  [[ -n ${msg} ]] && log "HEALTHCHECK: WARNING: DNSSEC: ${msg}"
+  [[ -n ${msg} ]] && log "HEALTHCHECK: WARNING: DNSSEC: ${msg}" || true
 }
 
 check_openvpn() {
@@ -36,6 +36,7 @@ check_openvpn() {
 
   if [[ ${OPENVPN} -ne 1 ]]; then
     log "HEALTHCHECK: ERROR: Openvpn process not running"
+    write_status_file NOTCONNECTED
     exit 1
   fi
 
@@ -56,13 +57,14 @@ check_openvpn() {
 
   LOAD=$(echo "load-stats" | socat -s - ${SOCKET} | tail -1)
   STATE=$(echo "state" | socat -s - ${SOCKET} | sed -n '2p')
-
+  write_status_file ${STATE}
   if [[ ! ${STATE} =~ CONNECTED ]]; then
     log "HEALTHCHECK: INFO: Openvpn load: ${LOAD}"
     log "HEALTHCHECK: ERROR: Openvpn not connected"
     exit 1
   fi
 }
+
 
 #Main
 if [[ -z "$HOST" ]]; then

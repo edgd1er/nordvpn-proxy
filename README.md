@@ -28,6 +28,7 @@ To sum up, this container:
 * Opens the best connection to NordVPN using openvpn and the conf downloaded using NordVpn API according to your criteria.
 * Starts a HTTP proxy that route `eth0:8888` to `eth0:1080` (socks server) with [tinyproxy](https://tinyproxy.github.io/)
 * Starts a SOCKS5 proxy that routes `eth0:1080` to `tun0/nordlynx` with [dante-server](https://www.inet.no/dante/).
+* Starts unbound as dnssec querying specified DNS. 
 
 The main advantage is that you get the best recommendation for each selection.
 
@@ -49,8 +50,9 @@ The container is expecting three informations to select the vpn server:
 * NORDVPN_USER=email or service user
 * NORDVPN_PASS=pass or service pass
 * EXIT_WHEN_IP_NOTEXPECTED=(0|1) # stop container when detected network is not as expected (based on /24 networks)
-* NORDVPN_SERVER=<country><#>.nordvpn.com: eg: nl568.nordvpn.com, get configuration based on server's fqdn, bypassing all api's recommendations. Connection may fail when the server is offline or overloaded. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
+* [NORDVPN_SERVER](https://nordvpn.com/api/server/stats)=<country><#>.nordvpn.com: eg: nl568.nordvpn.com, get configuration based on server's fqdn, bypassing all api's recommendations. Connection may fail when the server is offline or overloaded. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
 * NORDVPN_TESTS=[1-4], simple tests to test basic api filtering functions. 
+* WRITE_OVPN_STATUS=(0|1): write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status. you may mount the file to get the openvpn status outside the container. 
 
 ```yaml
 version: '3.8'
