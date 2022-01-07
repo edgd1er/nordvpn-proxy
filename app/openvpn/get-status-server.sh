@@ -2,7 +2,7 @@
 set -e -u -o pipefail
 
 #Variables
-. /etc/service/date.sh --source-only
+
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 ovpnConf=$(find /etc/service/openvpn/nordvpn/ -type f -iname *.ovpn ! -iname default*)

@@ -2,14 +2,13 @@
 set -e -u -o pipefail
 
 #Variables
-. /etc/service/date.sh --source-only
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 cronfile='/var/spool/cron/crontabs/root'
 
-log "CROND: INFO: Removing current cronfile"
+log "INFO: CROND: Removing current cronfile"
 rm -f "$cronfile"
-log "CROND: INFO: Creating new cronfile"
+log "INFO: CROND: Creating new cronfile"
 touch "$cronfile"
 
 #Add cron for GET_OVPN_FILES
@@ -23,7 +22,7 @@ if [[ "${CRON}" ]]; then
   #Add empty line at the end of file
   sed -i -e '$a\' $cronfile
 else
-  log "CROND: WARNING: No cron config, server load will not be checked! This is optional!"
+  log "WARNING: CROND: No cron config, server load will not be checked! This is optional!"
   exit 1
 fi
 

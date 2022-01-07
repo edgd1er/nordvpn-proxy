@@ -3,7 +3,7 @@ set -e -u -o pipefail
 
 
 #Variables
-. /etc/service/date.sh --source-only
+
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 nbFiles=0
 waitSec=30
@@ -21,7 +21,7 @@ export NORDVPN_CATEGORY
 VPN_PROVIDER_HOME=/etc/service/openvpn/nordvpn
 export VPN_PROVIDER_HOME
 
-. /etc/service/date.sh --source-only
+
 # Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
 if [ ! -c /dev/net/tun ]; then
     log "INFO: OVPN: Creating tun interface /dev/net/tun"

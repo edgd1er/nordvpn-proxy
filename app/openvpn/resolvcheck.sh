@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #Variables
-. /etc/service/date.sh --source-only
+
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
 #Functions
