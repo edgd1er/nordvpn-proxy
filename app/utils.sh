@@ -17,6 +17,8 @@ fatal_error() {
 
 write_status_file() {
   STATUS=$(echo ${1} | grep -oE "(NOT|)CONNECTED")
-  [[ ${WRITE_OVPN_STATUS} -ne 0 ]] && echo ${STATUS} >${OVPN_STATUS_FILE} || true
-  log "HEALTHCHECK: writing ${STATUS} to ${OVPN_STATUS_FILE}"
+  if [[ ${WRITE_OVPN_STATUS} -ne 0 ]]; then
+    echo ${STATUS} >${OVPN_STATUS_FILE}
+    log "HEALTHCHECK: OVPN status (${STATUS}) written to ${OVPN_STATUS_FILE}"
+  fi
 }

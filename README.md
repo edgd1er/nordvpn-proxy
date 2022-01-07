@@ -98,7 +98,7 @@ secrets:
     NORDVPN_PASS:
         file: ./nordvpn_pass
 ```
-#healthcheck
+# healthcheck
 
 script checks for:
 * proper dnssec resolution
@@ -113,3 +113,14 @@ dockerfile healtcheck:
 ```
 if test $( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ; then exit 0; else exit 1; fi 
 ```
+
+# Kill switch
+
+When vpn interface (tun) is up, default route through unprotected interface (eth0) is removed.
+
+To ensure that little or no traffic is forwarded unprotected, services are stopped on any of these events:
+
+- when the api returns that the status is not protected, the container stops.(every 5min)
+- when openvpn returns a status NOTCONNECTED, all services are stopped, openvpn is restarted. when ok, dante and tinyproxy are started.(checked every 5 minutes)
+- when openvpn service is stopped, the down phase (runit feature) stops all other services.
+- when the tun interface is disconnected, openvpn fires the down.sh script, stopping all services. 
