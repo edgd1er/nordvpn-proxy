@@ -260,8 +260,9 @@ else
   log "Checking NORDPVN API responses"
   for po in json_countries json_groups json_technologies; do
     if [[ $(echo ${!po} | grep -c "<html>") -gt 0 ]]; then
-      msg=$(echo ${!po} | grep -oP "(?<=title>)[^<]+")
+      msg=$(echo ${!po} | sed -E 's/.*title>([^\<]+).*/\1 /')
       echo "ERROR, unexpected html content from NORDVPN servers: ${msg}"
+      echo "NORDVPN API has a throttle limit, may return a 429 Too many messages, if container is in a loop of restart"
       sleep 30
       exit
     fi
