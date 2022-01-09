@@ -2,11 +2,14 @@
 set -e -u -o pipefail
 
 #Variables
-
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+DAEMON=sockd
 
 log "########################################################"
-log "INFO: dante: stopping"
-[[ -f /run/sockd.pid ]] && kill $(cat /run/sockd.pid)
+log "INFO: ${DAEMON}: stopping"
+[[ -f /run/${DAEMON}.pid ]] && kill $(cat /run/${DAEMON}.pid) && rm -f /run/${DAEMON}.pid || true
 sleep 1
-for p in $(pgrep sockd); do kill -9 $p; done
+for p in $(pgrep ${DAEMON}); do kill $p; done
+sleep 2
+for p in $(pgrep ${DAEMON}); do kill -9 $p; done
+log "INFO: ${DAEMON}: stopped"

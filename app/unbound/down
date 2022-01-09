@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+#Variables
+DAEMON=unbound
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+pkill ${DAEMON}
+sleep 2
+
+if [[ -n $(pgrep ${DAEMON}) ]]; then
+    pkill -9 ${DAEMON}
+fi

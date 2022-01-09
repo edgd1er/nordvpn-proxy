@@ -2,11 +2,16 @@
 set -e -u -o pipefail
 
 #Variables
-
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
-
 SOCKET="unix-connect:/run/openvpn.sock"
+DAEMON=openvpn
 
 log "########################################################"
 log "INFO: openvpn: stopping"
 (echo "signal SIGHUP";sleep 1)| socat -s - ${SOCKET}
+[[ -f /run/${DAEMON}.pid ]] && kill $(cat /run/${DAEMON}.pid) && rm -f /run/${DAEMON}.pid || true
+[[ -S /run/openvpn.sock ]] && rm -f /run/openvpn.sock
+for p in $(pgrep ${DAEMON}); do kill $p; done
+sleep 2
+for p in $(pgrep ${DAEMON}); do kill -9 $p; done
+log "INFO: ${DAEMON}: stopped"

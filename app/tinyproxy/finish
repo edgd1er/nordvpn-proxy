@@ -3,7 +3,7 @@ set -e -u -o pipefail
 
 #Variables
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
-DAEMON=unbound
+DAEMON=tinyproxy
 
 log "########################################################"
 log "INFO: ${DAEMON}: stopping"

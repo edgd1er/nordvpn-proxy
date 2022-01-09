@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+#Variables
+DAEMON=tinyproxy
+
+gpid=$(pgrep ${DAEMON})
+if [[ -f /run/${DAEMON}.pid ]]; then
+    rpid=$(cat /run/${DAEMON}.pid)
+    if [[ ${gpid} -ne ${rpid} ]]; then exit 1; fi
+fi
+
+if [[ -z ${gpid} ]]; then
+    exit 1
+fi

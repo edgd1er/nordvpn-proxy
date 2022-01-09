@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e -u -o pipefail
+
+#Variables
+[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+DAEMON=openvpn
+
+gpid=$(pgrep ${DAEMON} | wc -l)
+if [[ -f /run/${DAEMON}.pid ]]; then
+    rpid=$(cat /run/${DAEMON}.pid)
+    if [[ ${gpid} -ne ${rpid} ]]; then exit 1; fi
+fi
+
+if [[ -z "${gpid}" ]]; then
+    exit 1
+fi
+
+STATE=$(echo "state" | socat -s - ${SOCKET} | sed -n '2p')
+if [[ ! ${STATE} =~ CONNECTED ]]; then
+    exit 1
+fi
+
+

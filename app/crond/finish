@@ -3,7 +3,7 @@ set -e -u -o pipefail
 
 #Variables
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
-DAEMON=unbound
+DAEMON=crond
 
 log "########################################################"
 log "INFO: ${DAEMON}: stopping"
@@ -12,4 +12,3 @@ sleep 1
 for p in $(pgrep ${DAEMON}); do kill $p; done
 sleep 2
 for p in $(pgrep ${DAEMON}); do kill -9 $p; done
-log "INFO: ${DAEMON}: stopped"
