@@ -54,6 +54,20 @@ The container is expecting three informations to select the vpn server:
 * NORDVPN_TESTS=[1-4], simple tests to test basic api filtering functions. 
 * WRITE_OVPN_STATUS=(0|1): write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status. you may mount the file to get the openvpn status outside the container. 
 
+# How to run the container
+
+* Just copy/paste the grey text block starting with version 3.8. to a file named docker-compose.yml
+* Set values for NORDVPN_TECHNOLOGY, NORDVPN_PROTOCOL, NORDVPN_COUNTRY
+* adapt if needed LOCAL_NETWORK, TZ
+* create file nordvpn_login containing your login, nordvpn_pass containing your password
+* start the container: docker compose up -d
+
+once the container is started, you will see in the logs these two lines, indicating that both socks and http proxies are up.
+```
+nordvpn-proxy  | INFO: OPENVPN: up: starting tinyproxy
+.....
+nordvpn-proxy  | ok: run: tinyproxy: (pid 103) 1s, normally down
+
 ```yaml
 version: '3.8'
 services:
@@ -98,7 +112,7 @@ secrets:
     NORDVPN_PASS:
         file: ./nordvpn_pass
 ```
-# healthcheck
+# Healthcheck
 
 script checks for:
 * proper dnssec resolution

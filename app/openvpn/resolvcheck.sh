@@ -14,7 +14,7 @@ check_dnssec(){
     msg="SERVAIL expected not found."
   fi
   if [[ -z ${dns_ip_expected} ]]; then
-    [[ 0 -le ${#msg} ]]  && msg="${msg}, "
+    [[ 0 -lt ${#msg} ]]  && msg="${msg}, "
     msg="${msg}ip expected, none"
   fi
   [[ -n ${msg} ]] && log "RESOLVCHECK: WARNING: DNSSEC: ${msg}"
