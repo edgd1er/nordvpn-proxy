@@ -8,9 +8,8 @@ DAEMON=openvpn
 
 log "########################################################"
 log "INFO: openvpn: stopping"
-(echo "signal SIGHUP";sleep 1)| socat -s - ${SOCKET}
+[[ -S /run/openvpn.sock ]] && (echo "signal SIGHUP";sleep 1)| socat -s - ${SOCKET} && rm -f /run/openvpn.sock
 [[ -f /run/${DAEMON}.pid ]] && kill $(cat /run/${DAEMON}.pid) && rm -f /run/${DAEMON}.pid || true
-[[ -S /run/openvpn.sock ]] && rm -f /run/openvpn.sock
 for p in $(pgrep ${DAEMON}); do kill $p; done
 sleep 2
 for p in $(pgrep ${DAEMON}); do kill -9 $p; done
