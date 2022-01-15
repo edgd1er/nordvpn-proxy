@@ -7,11 +7,15 @@ SOCKET="unix-connect:/run/openvpn.sock"
 OVPN_STATUS_FILE=/var/tmp/ovpn_status
 
 log() {
-  printf "%b\n" "$*" >/dev/stderr
+  if [[ $* =~ ^INFO ]]; then
+    printf "%b\n" "$*" >/dev/stderr
+  else
+    printf "INFO: %b\n" "$*" >/dev/stderr
+  fi
 }
 
 fatal_error() {
-  printf "\e[41mERROR:\033[0m %b\n" "$*" >&2
+  printf "ERROR: %b\n" "$*" >&2
   exit 1
 }
 

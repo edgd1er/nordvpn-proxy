@@ -4,26 +4,25 @@ set -e -u -o pipefail
 #Variables
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
-cronfile='/var/spool/cron/crontabs/root'
+cronfile='/etc/crontabs/root'
 
 log "INFO: CROND: Removing current cronfile"
 rm -f "$cronfile"
 log "INFO: CROND: Creating new cronfile"
 touch "$cronfile"
 
-#Add cron for GET_OVPN_FILES
-#printf "$CRON_OVPN_FILES '/etc/service/openvpn/get-ovpn-files.sh'\n" > "$cronfile"
+# add dns resolution check (unbound) and additional healthcheck (openvpn status)
 echo "*/5 * * * * /etc/service/openvpn/healthcheck.sh" >>"$cronfile"
 echo "*/1 * * * * /etc/service/openvpn/resolvcheck.sh" >>"$cronfile"
 
 if [[ "${CRON}" ]]; then
-  log "INFO: CRON: Your cron settings (${CRON}) will be applied!"
-  printf "$CRON '/etc/service/openvpn/get-status-server.sh'\n" >>"$cronfile"
-  #Add empty line at the end of file
-  sed -i -e '$a\' $cronfile
+  log "INFO: CROND: Your cron settings (${CRON}) will be applied!"
+  printf $CRON"\t/etc/service/openvpn/get-status-server.sh\n" >>"$cronfile"
 else
   log "WARNING: CROND: No cron config, server load will not be checked! This is optional!"
   exit 1
 fi
 
+#Add empty line at the end of file
+sed -i -e '$a\' $cronfile
 crond -f -S -L /dev/fd/1

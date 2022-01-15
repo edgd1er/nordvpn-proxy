@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
-
+#
+# First script to start
+# prepare openvpn + other services
+# start openvpn
+# when started and ok, default route through eth0 is removed, crond, unbound, tinyproxy and dante are started.
+#
+#
 #Variables
 
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
@@ -10,6 +16,7 @@ waitSec=30
 DEBUG=${DEBUG:-0}
 OPENVPN_LOGLEVEL=${OPENVPN_LOGLEVEL:-0}
 OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS:-""}
+#OPENVPN_PARAMETERS+=""
 SOCKET="/run/openvpn.sock"
 
 NORDVPN_PROTOCOL=${NORDVPN_PROTOCOL:-UDP}
@@ -21,10 +28,9 @@ export NORDVPN_CATEGORY
 VPN_PROVIDER_HOME=/etc/service/openvpn/nordvpn
 export VPN_PROVIDER_HOME
 
-
 # Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
 if [ ! -c /dev/net/tun ]; then
-    log "INFO: OVPN: Creating tun interface /dev/net/tun"
+    log "OVPN: Creating tun interface /dev/net/tun"
     mkdir -p /dev/net
     mknod /dev/net/tun c 10 200
     chmod 600 /dev/net/tun
@@ -33,14 +39,14 @@ fi
 ${VPN_PROVIDER_HOME}/configure-openvpn.sh
 nbFiles=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -c ovpn)
 confFile=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -v default.ovpn)
-log "INFO: OVPN: ########################################################"
-log "INFO: OVPN: Files found: $nbFiles"
-log "INFO: OVPN: config: $confFile"
-log "INFO: OVPN: ########################################################"
+log "OVPN: ########################################################"
+log "OVPN: Files found: $nbFiles"
+log "OVPN: config: $confFile"
+log "OVPN: openvpn log level: ${OPENVPN_LOGLEVEL}"
+log "OVPN: ########################################################"
 
 if [[ ${nbFiles} -eq 0 ]]; then
-    log "ERROR: OVPN: No OpenVPN config found in ${VPN_PROVIDER_HOME}/. Exiting."
-    exit 1
+    fatal_error "OVPN: No OpenVPN config found in ${VPN_PROVIDER_HOME}/. Exiting."
 fi
 
 ## Update ping options to exit the container, so Docker will restart it
@@ -54,48 +60,51 @@ echo -e "management ${SOCKET} unix\nscript-security 2\n--up /etc/service/openvpn
 
 #Use secrets if present
 if [ -e /run/secrets/NORDVPN_LOGIN ]; then
-  NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_LOGIN)
-  NORDVPN_PASS=$(cat /run/secrets/NORDVPN_PASS)
+    NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_LOGIN)
+fi
+if [ -e /run/secrets/NORDVPN_PASS ]; then
+    NORDVPN_PASS=$(cat /run/secrets/NORDVPN_PASS)
 fi
 
-if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ]; then
-  log "ERROR: NORDVPN: **********************"
-  log "ERROR: NORDVPN: empty user or password"
-  log "ERROR: NORDVPN: **********************"
-  exit 1
+# check for unset login/pass
+if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ] || [[ "${NORDVPN_LOGIN}" == "**None**" ]] || [[ "${NORDVPN_PASS}" == "**None**" ]]; then
+    fatal_error "OVPN: OpenVPN credentials not set. Exiting."
+else
+    log "OVPN: Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
 fi
 
 # add OpenVPN user/pass
-if [[ "${NORDVPN_LOGIN}" == "**None**" ]] || [[ "${NORDVPN_PASS}" == "**None**" ]]; then
-    if [[ ! -f /config/openvpn-credentials.txt ]]; then
-        log "ERROR: OVPN: OpenVPN credentials not set. Exiting."
-        exit 1
-    fi
-    log "INFO: OVPN: Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
-else
-    log "INFO: OVPN: Setting OpenVPN credentials..."
-    mkdir -p /config
-    echo "${NORDVPN_LOGIN}" >/config/openvpn-credentials.txt
-    echo "${NORDVPN_PASS}" >>/config/openvpn-credentials.txt
-    chmod 600 /config/openvpn-credentials.txt
-    sed -i "s#auth-user-pass.*#auth-user-pass /config/openvpn-credentials.txt#g" "${confFile}"
-    [[ $DEBUG -eq 1 ]] && cat ${confFile} || true
+log "OVPN: Setting OpenVPN credentials..."
+mkdir -p /config
+echo -e "${NORDVPN_LOGIN}\n${NORDVPN_PASS}" >/config/openvpn-credentials.txt
+chmod 600 /config/openvpn-credentials.txt
+sed -i "s#auth-user-pass.*#auth-user-pass /config/openvpn-credentials.txt#g" "${confFile}"
+
+# check OpenVPN user/pass
+if [[ !  -f /config/openvpn-credentials.txt ]]; then
+    fatal_error "OVPN: OpenVPN credentials not set. Exiting."
 fi
 
-#echo "export LOCAL_NETWORK=${LOCAL_NETWORK}" > /tmp/vars
+if [[ $DEBUG -eq 1 ]]; then
+    log "OVPN: route"
+    route -n
+    log "OVPN: ${confFile}"
+    cat ${confFile}
+    log "OVPN: OPENVPN_PARAMETERS: ${OPENVPN_PARAMETERS}"
+fi
 eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
-echo "LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
 if [[ -n ${LOCAL_NETWORK:-""} ]]; then
-  if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
-    for localNet in ${LOCAL_NETWORK//,/ }; do
-      echo "adding route to local network ${localNet} via ${GW} dev ${INT}"
-      /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
-    done
-  fi
+    log "OVPN: LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
+    if [[ -n ${GW:-""} ]] && [[ -n ${INT:-""} ]]; then
+        for localNet in ${LOCAL_NETWORK//,/ }; do
+            echo "adding route to local network ${localNet} via ${GW} dev ${INT}"
+            /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
+        done
+    fi
 fi
 
 openvpn --config ${confFile} ${OPENVPN_PARAMETERS}
 
-log "INFO: OVPN: VPN connection lost, stopping unbound"
-log "INFO: OVPN: Waiting ${waitSec} seconds before restarting"
+log "OVPN: VPN connection lost, stopping unbound"
+log "OVPN: Waiting ${waitSec} seconds before restarting"
 sleep ${waitSec}

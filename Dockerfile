@@ -2,6 +2,7 @@ FROM alpine:3.14
 LABEL maintainer=edgd1er
 
 ENV OVPN_CONFIG_DIR="/app/openvpn/config" \
+  OPENVPN_LOGELEVEL=3 \
   SERVER_RECOMMENDATIONS_URL="https://api.nordvpn.com/v1/servers/recommendations" \
   SERVER_STATS_URL="https://nordvpn.com/api/server/stats/" \
   CRON="*/15 * * * *" \

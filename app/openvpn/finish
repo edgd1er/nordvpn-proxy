@@ -13,4 +13,6 @@ log "INFO: openvpn: stopping"
 for p in $(pgrep ${DAEMON}); do kill $p; done
 sleep 2
 for p in $(pgrep ${DAEMON}); do kill -9 $p; done
+route add default dev eth0
+echo "nameserver 127.0.0.1" >/etc/resolv.conf
 log "INFO: ${DAEMON}: stopped"
