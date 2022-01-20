@@ -98,9 +98,10 @@ services:
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
       - LOCAL_NETWORK=192.168.53.0/24
       - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
-      - TINYLOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
+      - TINY_LOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
       - DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
+      - CRON_LOGLEVEL=9 #optional, from 0 to 9, 8 default, 9 quiet.
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
         - NORDVPN_LOGIN

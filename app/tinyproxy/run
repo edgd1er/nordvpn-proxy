@@ -9,14 +9,14 @@ SOURCE_CONF=/config/tinyproxy.conf
 CONF=/etc/tinyproxy/tinyproxy.conf
 TINYPORT=${TINYPORT:-8888}
 #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
-TINYLOGLEVEL=${TINYLOGLEVEL:-Error}
+TINY_LOGLEVEL=${TINY_LOGLEVEL:-Error}
 EXT_IP=$(ip addr show tun0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
 INT_IP=$(ip addr show eth0 | grep -oE 'inet [^/]+' | cut -f2 -d' ')
 
 #Main
-log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP} / log level: ${TINYLOGLEVEL} / local network: ${LOCAL_NETWORK}"
+log "INFO: TINYPROXY: set configuration INT_IP: ${INT_IP}/ EXT_IP: ${EXT_IP} / log level: ${TINY_LOGLEVEL} / local network: ${LOCAL_NETWORK}"
 sed "s/TINYPORT/${TINYPORT}/" ${SOURCE_CONF} > ${CONF}
-sed -i "s/TINYLOGLEVEL/${TINYLOGLEVEL}/" ${CONF}
+sed -i "s/TINY_LOGLEVEL/${TINY_LOGLEVEL}/" ${CONF}
 sed -i "s/#Listen .*/Listen ${INT_IP}/" ${CONF}
 
 #Allow only local network or all private address ranges
