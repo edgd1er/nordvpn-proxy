@@ -104,14 +104,11 @@ services:
       - CRON_LOGLEVEL=9 #optional, from 0 to 9, 8 default, 9 quiet.
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
-        - NORDVPN_LOGIN
-        - NORDVPN_PASS
+        - NORDVPN_CREDS
 
 secrets:
-    NORDVPN_LOGIN:
-        file: ./nordvpn_login
-    NORDVPN_PASS:
-        file: ./nordvpn_pass
+    NORDVPN_CREDS:
+        file: ./nordvpn_creds
 ```
 # Healthcheck
 

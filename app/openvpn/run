@@ -59,11 +59,10 @@ echo -e "management ${SOCKET} unix\nscript-security 2\n--up /etc/service/openvpn
 [[ -n ${OPENVPN_LOGLEVEL} ]] && OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS}" --verb ${OPENVPN_LOGLEVEL}" #sed -i "s/verb.*/verb ${OPENVPN_LOGLEVEL}/g" ${destConf}
 
 #Use secrets if present
-if [ -e /run/secrets/NORDVPN_LOGIN ]; then
-    NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_LOGIN)
-fi
-if [ -e /run/secrets/NORDVPN_PASS ]; then
-    NORDVPN_PASS=$(cat /run/secrets/NORDVPN_PASS)
+if [ -e /run/secrets/NORDVPN_CREDS ]; then
+    NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_CREDS| head -1)
+    NORDVPN_PASS=$(cat /run/secrets/NORDVPN_CREDS| tail -1)
+    [[ ${NORDVPN_LOGIN} == ${NORDVPN_PASS} ]] && fatal_error "OVPN: openVPN login and password are identical. Exiting"
 fi
 
 # check for unset login/pass
