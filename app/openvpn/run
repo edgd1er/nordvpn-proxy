@@ -59,10 +59,14 @@ echo -e "management ${SOCKET} unix\nscript-security 2\n--up /etc/service/openvpn
 [[ -n ${OPENVPN_LOGLEVEL} ]] && OPENVPN_PARAMETERS=${OPENVPN_PARAMETERS}" --verb ${OPENVPN_LOGLEVEL}" #sed -i "s/verb.*/verb ${OPENVPN_LOGLEVEL}/g" ${destConf}
 
 #Use secrets if present
+set +x
 if [ -e /run/secrets/NORDVPN_CREDS ]; then
-    NORDVPN_LOGIN=$(cat /run/secrets/NORDVPN_CREDS| head -1)
-    NORDVPN_PASS=$(cat /run/secrets/NORDVPN_CREDS| tail -1)
-    [[ ${NORDVPN_LOGIN} == ${NORDVPN_PASS} ]] && fatal_error "OVPN: openVPN login and password are identical. Exiting"
+    mapfile -t -n 2 vars </run/secrets/NORDVPN_CREDS
+    if [[ ${#vars[*]} -ne 2 ]] || [[ ${vars[0]} == ${vars[1]} ]]; then
+        fatal_error "OVPN: openVPN login and password are identical. Exiting"
+    fi
+    NORDVPN_LOGIN=${vars[0]}
+    NORDVPN_PASS=${vars[1]}
 fi
 
 # check for unset login/pass
@@ -80,7 +84,7 @@ chmod 600 /config/openvpn-credentials.txt
 sed -i "s#auth-user-pass.*#auth-user-pass /config/openvpn-credentials.txt#g" "${confFile}"
 
 # check OpenVPN user/pass
-if [[ !  -f /config/openvpn-credentials.txt ]]; then
+if [[ ! -f /config/openvpn-credentials.txt ]]; then
     fatal_error "OVPN: OpenVPN credentials not set. Exiting."
 fi
 

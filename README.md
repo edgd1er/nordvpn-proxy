@@ -44,7 +44,10 @@ The container is expecting three informations to select the vpn server:
 
 > NOTE: This container works best using the `p2p` technology.
 > 
-> NOTE: At the moment, this container has no kill switch... meaning that when the VPN connection is down, the connection will be rerouted through your provider. although, on tunnel down event, the socks server is stopped preventing to relay unprotected requests.   
+> NOTE: At the moment, this container has no kill switch... meaning that when the VPN connection is down, the connection will be rerouted through your provider. although, on tunnel down event, the socks server is stopped preventing to relay unprotected requests, and defaults route through eth0 (not vpn) are deleted.   
+>
+> NOTE: as of 22/03/28, NORDVPN_LOGIN and NORDVPN_PASS secrets file are replaced with a single file, NORDVPN_CREDS, having login at first line and password as the second line.
+
 
 * DNS to uses external DNS, if none given: "1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com"
 * NORDVPN_USER=email or service user
