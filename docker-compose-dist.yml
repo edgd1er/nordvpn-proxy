@@ -7,41 +7,38 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "1081:1080"
-    devices:
-      - /dev/net/tun
-    sysctls:
-      - net.ipv4.conf.all.rp_filter=2
+      - "1081:1080" # socks port udp or tcp
+      - "8888:8888/tcp" # http proxy tcp.
+    #    devices:
+    #      - /dev/net/tun #Optional, will be created if not preset
+    #    sysctls:
+    #      - net.ipv4.conf.all.rp_filter=2
     cap_add:
-      - SYS_MODULE
       - NET_ADMIN
     environment:
-      - TZ=Europe/Paris
+      - TZ=America/Chicago
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
-      #- NORDVPN_COUNTRY=germany #Optional, by default, servers in user's coyntry.
-      - NORDVPN_SERVER=de10.nordvpn.com #Optional, get config file base on server's name.bypass the api's recommendations. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
+      - NORDVPN_SERVER=sg460.nordvpn.com #Optional, get config file base on server's name.bypass the api's recommendations. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
+      #- NORDVPN_SERVER=
       - NORDVPN_PROTOCOL=udp #Optional, udp by default, udp or tcp
       - NORDVPN_CATEGORY=p2p #Optional, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       - NORDVPN_LOGIN=<email> #Not required if using secrets
       - NORDVPN_PASS=<pass> #Not required if using secrets
       - OPENVPN_PARAMETERS= #optional, empty by default, overrides openvpn config file with parameters
-      - OPENVPN_LOGLEVEL= #Optional, define openvpn verbose level 0-9
+      - OPENVPN_LOGLEVEL=2 #Optional, default 3, define openvpn verbose level 0-9
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
-      - WRITE_OVPN_STATUS=1 # 0/1 write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status_file
-      - LOCAL_NETWORK=192.168.0.0/24
+      - WRITE_OVPN_STATUS=0 # 0/1 write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status_file
+      #- LOCAL_NETWORK=192.168.0.0/24
       - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       - TINY_LOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
       - DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
-      - CRON_LOGLEVEL=8 #optional, from 0 to 9, 8 default, 9 quiet.
+      - CRON_LOGLEVEL=9 #optional, from 0 to 9, 8 default, 9 quiet.
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
+      - CRON="*/10 * * * *" # empty to disable server's load check and display.
     secrets:
-      - NORDVPN_LOGIN
-      - NORDVPN_PASS
-
+      - NORDVPN_CREDS
 
 secrets:
-  NORDVPN_LOGIN:
-    file: ./nordvpn_login
-  NORDVPN_PASS:
-    file: ./nordvpn_pwd
+  NORDVPN_CREDS:
+    file: ./nordvpn_creds
