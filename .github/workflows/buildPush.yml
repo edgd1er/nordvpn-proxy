@@ -67,6 +67,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
+          build-args: VER=3.16
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
           push: ${{env.DOCKER_PUSH }}

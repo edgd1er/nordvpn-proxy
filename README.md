@@ -99,7 +99,7 @@ services:
       - OPENVPN_PARAMETERS= #optional, empty by default, overrides openvpn config file with parameters
       - OPENVPN_LOGLEVEL= #Optional, define openvpn verbose level 0-9
       - EXIT_WHEN_IP_NOTASEXPECTED=0 # when detected ip is not belonging to remote vpn network
-      - LOCAL_NETWORK=192.168.53.0/24
+      - LOCAL_NETWORK=192.168.0.0/24 # allow network access for socks and tinyproxy.
       - TINYPORT=8888 #define tinyport inside the container, optional, 8888 by default,
       - TINY_LOGLEVEL=Error #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
       - DANTE_LOGLEVEL="error" #Optional, error by default, available values: connect disconnect error data

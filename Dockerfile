@@ -1,4 +1,5 @@
-FROM alpine:3.15
+ARG VER=3.15.2
+FROM alpine:${VER}
 LABEL maintainer=edgd1er
 
 ENV OVPN_CONFIG_DIR="/app/openvpn/config" \
