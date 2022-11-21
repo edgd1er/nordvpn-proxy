@@ -37,7 +37,7 @@ The main advantage is that you get the best recommendation for each selection.
 [Script](https://github.com/haugene/docker-transmission-openvpn/blob/master/openvpn/nordvpn/updateConfigs.sh) for OpenVpn config download is base on the one developped for [haugene](https://github.com/haugene/docker-transmission-openvpn) 's docker transmission openvpn
 https://haugene.github.io/docker-transmission-openvpn/provider-specific/
 
-The container is expecting three informations to select the vpn server:
+The container is expecting three parameters to select the vpn server:
 * [NORDVPN_COUNTRY](https://api.nordvpn.com/v1/servers/countries) define the exit country.
 * [NORDVPN_PROTOCOL](https://api.nordvpn.com/v1/technologies) although many protocols are possible, only tcp or udp are available.
 * [NORDVPN_CATEGORY](https://api.nordvpn.com/v1/servers/groups) although many categories are possible, p2p seems more adapted.

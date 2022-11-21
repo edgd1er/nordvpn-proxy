@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+
+set -x -e -u -o pipefail
 #var
 PROXY_HOST="localhost"
 HTTP_PORT=8888
@@ -16,10 +18,11 @@ buildAndWait() {
   docker compose -f docker-compose.yml up -d --build
   echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
   logs=""
+  n=0
   while [ 0 -eq $(echo $logs | grep -c "Initialization Sequence Completed") ]; do
     logs="$(docker compose logs)"
     sleep ${INTERVAL}
-    ((n++))
+    ((n+=1))
     echo "loop: ${n}"
     [[ ${n} -eq 15 ]] && break || true
   done

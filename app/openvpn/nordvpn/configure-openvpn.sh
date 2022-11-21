@@ -268,5 +268,10 @@ else
   selected="$(select_hostname)"
 fi
 download_hostname ${selected}
+echo "selected: ${selected}, VPN_PROVIDER_HOME: ${VPN_PROVIDER_HOME}"
+#add data ciphers: DEPRECATED OPTION: --cipher set to 'AES-256-CBC' but missing in --data-ciphers (AES-256-GCM:AES-128-GCM).
+if [[ 0 -le $(grep -c "cipher AES-256-CBC" ${VPN_PROVIDER_HOME}/${selected}.ovpn) ]] && [[ 0 -eq $(grep -c "data-ciphers AES-256-CBC" ${VPN_PROVIDER_HOME}/${selected}.ovpn) ]]; then
+    sed -i "/cipher AES-256-CBC/a data-ciphers AES-256-CBC" ${VPN_PROVIDER_HOME}/${selected}.ovpn
+fi
 export OPENVPN_CONFIG=${selected}
 cd "${0%/*}"
