@@ -5,8 +5,8 @@ set -e -u -o pipefail
 
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
-SOURCE_DANTE_CONF=/config/dante.conf
-DANTE_CONF=/etc/dante.conf
+SOURCE_DANTE_CONF=/baseconfig/dante.conf
+DANTE_CONF=/config/dante.conf
 dante_d=''
 DEBUG=${DEBUG:-0}
 DANTE_DEBUG=${DEBUG:-0}

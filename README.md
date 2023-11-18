@@ -108,6 +108,8 @@ services:
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
     secrets:
         - NORDVPN_CREDS
+    volumes:
+      - ./myconfig/:/config/
 
 secrets:
     NORDVPN_CREDS:

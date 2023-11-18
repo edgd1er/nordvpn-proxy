@@ -5,8 +5,8 @@ set -e -u -o pipefail
 
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
-SOURCE_CONF=/config/tinyproxy.conf
-CONF=/etc/tinyproxy/tinyproxy.conf
+SOURCE_CONF=/baseconfig/tinyproxy.conf
+CONF=/config/tinyproxy.conf
 TINYPORT=${TINYPORT:-8888}
 #Critical (least verbose), Error, Warning, Notice, Connect (to log connections without Info's noise), Info
 TINY_LOGLEVEL=${TINY_LOGLEVEL:-Error}

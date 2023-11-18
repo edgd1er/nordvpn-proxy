@@ -9,7 +9,7 @@ set -e -u -o pipefail
 #
 #
 #Variables
-
+[[ ${DEBUG:-0} =~ true|TRUE|True|1 ]] && set -x | true
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 nbFiles=0
 waitSec=30
@@ -25,7 +25,7 @@ export NORDVPN_PROTOCOL
 NORDVPN_CATEGORY=${NORDVPN_CATEGORY:-P2P}
 export NORDVPN_CATEGORY
 
-VPN_PROVIDER_HOME=/etc/service/openvpn/nordvpn
+VPN_PROVIDER_HOME=/etc/service/openvpn
 export VPN_PROVIDER_HOME
 
 # Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
@@ -65,12 +65,12 @@ if [ -e /run/secrets/NORDVPN_CREDS ]; then
     if [[ ${#vars[*]} -ne 2 ]] || [[ ${vars[0]} == ${vars[1]} ]]; then
         fatal_error "OVPN: openVPN login and password are identical. Exiting"
     fi
-    NORDVPN_LOGIN=${vars[0]}
+    NORDVPN_USER=${vars[0]}
     NORDVPN_PASS=${vars[1]}
 fi
 
 # check for unset login/pass
-if [ -z ${NORDVPN_LOGIN} ] || [ -z ${NORDVPN_PASS} ] || [[ "${NORDVPN_LOGIN}" == "**None**" ]] || [[ "${NORDVPN_PASS}" == "**None**" ]]; then
+if [ -z "${NORDVPN_USER}" ] || [ -z "${NORDVPN_PASS}" ] || [[ "${NORDVPN_USER}" == "**None**" ]] || [[ "${NORDVPN_PASS}" == "**None**" ]]; then
     fatal_error "OVPN: OpenVPN credentials not set. Exiting."
 else
     log "OVPN: Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
@@ -79,7 +79,7 @@ fi
 # add OpenVPN user/pass
 log "OVPN: Setting OpenVPN credentials..."
 mkdir -p /config
-echo -e "${NORDVPN_LOGIN}\n${NORDVPN_PASS}" >/config/openvpn-credentials.txt
+echo -e "${NORDVPN_USER}\n${NORDVPN_PASS}" >/config/openvpn-credentials.txt
 chmod 600 /config/openvpn-credentials.txt
 sed -i "s#auth-user-pass.*#auth-user-pass /config/openvpn-credentials.txt#g" "${confFile}"
 

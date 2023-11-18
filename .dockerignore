@@ -3,3 +3,4 @@
 *.md
 Makefile
 nordvpn_*
+/myconfig/

@@ -2,14 +2,14 @@ ARG VER=3.18
 FROM alpine:${VER}
 LABEL maintainer=edgd1er
 
-ENV OVPN_CONFIG_DIR="/app/openvpn/config" \
+ENV OVPN_CONFIG_DIR="/config" \
   OPENVPN_LOGELEVEL=3 \
   SERVER_RECOMMENDATIONS_URL="https://api.nordvpn.com/v1/servers/recommendations" \
   SERVER_STATS_URL="https://nordvpn.com/api/server/stats/" \
   CRON="*/15 * * * *" \
   CRON_OVPN_FILES="@daily"\
-  NORDVPN_USER="" \
-  NORDVPN_PASS="" \
+  NORDVPN_USER="**None**" \
+  NORDVPN_PASS="**None**" \
   NORDVPN_COUNTRY="" \
   NORDVPN_SERVER="" \
   NORDVPN_CATEGORY="" \
@@ -33,7 +33,7 @@ RUN echo "####### Installing packages #######" && \
     curl -s https://www.internic.net/domain/named.cache -o /etc/unbound/root.hints && \
 	echo "####### Removing cache #######" && \
 	rm -rf /*.zip -- /var/cache/apk/*
-COPY ./config /config/
+COPY baseconfig /baseconfig/
 COPY ./app /etc/service/
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN    echo "####### Changing permissions #######" && \
@@ -44,5 +44,7 @@ HEALTHCHECK --interval=5m --timeout=20s --start-period=1m \
   CMD if test $( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ; then exit 0; else exit 1; fi
 
 WORKDIR /etc/service
+
+VOLUME /config/
 
 CMD ["runsvdir", "/etc/service/"]

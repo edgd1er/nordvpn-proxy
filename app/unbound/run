@@ -4,8 +4,8 @@ set -e -u -o pipefail
 #Variables
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
-SOURCE_CONF=/config/unbound.conf
-CONF=/etc/unbound/unbound.conf
+SOURCE_CONF=/baseconfig/unbound.conf
+CONF=/config/unbound.conf
 DNS=${DNS:-1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com}
 RESOLV=/etc/resolv.conf
 

@@ -4,7 +4,7 @@
 set -x -e -u -o pipefail
 #var
 PROXY_HOST="localhost"
-HTTP_PORT=8888
+HTTP_PORT=8889
 SOCK_PORT=1081
 FAILED=0
 INTERVAL=4
