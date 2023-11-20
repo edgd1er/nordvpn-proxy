@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 DEBUG=${DEBUG:-0}
-[[ ${DEBUG} -ne 0 ]] && set -x || true
+if [[ ${DEBUG,,} =~ (true|1) ]]; then
+    DEBUG=1
+    set -x
+fi
 
 SOCKET="unix-connect:/run/openvpn.sock"
 OVPN_STATUS_FILE=/var/tmp/ovpn_status

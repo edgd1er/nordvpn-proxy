@@ -40,7 +40,7 @@ check_openvpn() {
     exit 1
   fi
 
-  ovpnConf=$(find /etc/service/openvpn/nordvpn/ -type f -iname *.ovpn ! -iname default*)
+  ovpnConf=$(find /config/ -type f -iname *.ovpn ! -iname default*)
   nordvpn_hostname=$(basename ${ovpnConf} | sed "s/.ovpn//")
   expectedIp=$(awk '/remote /{print $2}' ${ovpnConf})
   [[ ${expectedIp} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\. ]] && net_expected=${BASH_REMATCH[*]}

@@ -5,7 +5,7 @@ set -e -u -o pipefail
 
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 
-ovpnConf=$(find /etc/service/openvpn/nordvpn/ -type f -iname *.ovpn ! -iname default*)
+ovpnConf=$(find /config/ -type f -iname *.ovpn ! -iname default*)
 
 nordvpn_hostname=$(basename ${ovpnConf} | sed "s/.ovpn//")
 server_load=$(curl -s $SERVER_STATS_URL$nordvpn_hostname | jq -r '.[]')

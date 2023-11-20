@@ -1,6 +1,5 @@
-*.yml
-*.sh
+./*.yml
+./*.sh
 *.md
 Makefile
-nordvpn_*
 /myconfig/
