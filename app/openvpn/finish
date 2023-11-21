@@ -6,7 +6,7 @@ set -e -u -o pipefail
 SOCKET="unix-connect:/run/openvpn.sock"
 DAEMON=openvpn
 
-log "########################################################"
+log "INFO:" "########################################################"
 log "INFO: openvpn: stopping"
 [[ -S /run/openvpn.sock ]] && (echo "signal SIGHUP";sleep 1)| socat -s - ${SOCKET} && rm -f /run/openvpn.sock
 [[ -f /run/${DAEMON}.pid ]] && kill $(cat /run/${DAEMON}.pid) && rm -f /run/${DAEMON}.pid || true

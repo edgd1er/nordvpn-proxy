@@ -39,11 +39,11 @@ fi
 ${VPN_PROVIDER_HOME}/configure-openvpn.sh
 nbFiles=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -c ovpn)
 confFile=$(ls -1 ${VPN_PROVIDER_HOME}/*.ovpn | grep -v default.ovpn)
-log "OVPN: ########################################################"
-log "OVPN: Files found: $nbFiles"
-log "OVPN: config: $confFile"
-log "OVPN: openvpn log level: ${OPENVPN_LOGLEVEL}"
-log "OVPN: ########################################################"
+log "INFO" "OVPN: ########################################################"
+log "INFO" "OVPN: Files found: $nbFiles"
+log "INFO" "OVPN: config: $confFile"
+log "INFO" "OVPN: openvpn log level: ${OPENVPN_LOGLEVEL}"
+log "INFO" "OVPN: ########################################################"
 
 if [[ ${nbFiles} -eq 0 ]]; then
     fatal_error "OVPN: No OpenVPN config found in ${VPN_PROVIDER_HOME}/. Exiting."

@@ -23,7 +23,7 @@ sed -i "s/DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}
 [[ -n ${DANTE_LOGLEVEL} ]] && sed -i "s/log: DANTE_LOGLEVEL/log: ${DANTE_LOGLEVEL}/" ${DANTE_CONF}
 [[ -n ${DANTE_ERRORLOG} ]] && sed -i "s#errorlog: /dev/null#errorlog: ${DANTE_ERRORLOG}#" ${DANTE_CONF}
 
-log "########################################################"
+log "INFO:" "########################################################"
 log "INFO: DANTE: Waiting for tun0 to be up"
 while [[ $(ifconfig tun0 2>&1 | grep -c "00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00") -eq 0 ]]; do
     sleep 10

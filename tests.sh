@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 
 
-set -x -e -u -o pipefail
+set -e -u -o pipefail
 #var
 PROXY_HOST="localhost"
-HTTP_PORT=8889
-SOCK_PORT=1081
+HTTP_PORT=88$(grep -oP '(?<=\- "88)[^:]+' docker-compose.yml)
+SOCK_PORT=10$(grep -oP '(?<=\- "10)[^:]+' docker-compose.yml)
 FAILED=0
 INTERVAL=4
 
 #Functions
-
 buildAndWait() {
   echo "Stopping and removing running containers"
   docker compose down -v
@@ -30,7 +29,16 @@ buildAndWait() {
 }
 
 #Main
-[[ "localhost" == ${PROXY_HOST} ]] && buildAndWait
+[[ -z $(which nc) ]] && echo "No nc found" && exit || true
+
+if [[ ${HTTP_PORT} -eq 88 ]] || [[ ${SOCK_PORT} -eq 10 ]]; then
+    echo no docker-compose.yml found
+    exit
+fi
+
+if [[ "-t" != ${1:-''} ]]; then
+    [[ "localhost" == ${PROXY_HOST} ]] && buildAndWait
+fi
 for PORT in ${HTTP_PORT} ${SOCK_PORT}; do
   msg="Test connection to port ${PORT}: "
   if [ 0 -eq $(echo "" | nc -v -q 2 ${PROXY_HOST} ${PORT} 2>&1 | grep -c "] succeeded") ]; then
@@ -58,7 +66,9 @@ else
   ((FAILED += 1))
 fi
 
-docker compose down
+if [[ "-t" != ${1:-''} ]]; then
+    [[ "localhost" == ${PROXY_HOST} ]] && docker compose down
+fi
 
 echo "# failed tests: ${FAILED}"
 exit ${FAILED}

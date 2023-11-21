@@ -5,7 +5,7 @@ set -e -u -o pipefail
 [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
 DAEMON=crond
 
-log "########################################################"
+log "INFO: ########################################################"
 log "INFO: ${DAEMON}: stopping"
 [[ -f /run/${DAEMON}.pid ]] && kill $(cat /run/${DAEMON}.pid) && rm -f /run/${DAEMON}.pid || true
 sleep 1
