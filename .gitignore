@@ -2,7 +2,6 @@
 ./*.sh
 *.iml
 docker-compose.yml
-Makefile
 nordvpn_*
 !myconfig
 myconfig/

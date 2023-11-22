@@ -24,15 +24,12 @@ set -e -u -o pipefail
 
 #Variables
 MAIN_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"/.."
-
-[[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
-CONFIGDIR=/config
-#standalone tests for api
-if [[ ! -d /config ]]; then
-    [[ -f $MAIN_DIR/utils.sh ]] && source $MAIN_DIR/utils.sh || true
-    CONFIGDIR=/tmp
-    VPN_PROVIDER_HOME=/tmp/config
-    mkdir -p ${VPN_PROVIDER_HOME}
+if [ -d /config ]; then
+    #load var at runtime
+    [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
+else
+    #load var for tests
+    [[ -f ${MAIN_DIR}/utils.sh ]] && source ${MAIN_DIR}/utils.sh || true
 fi
 
 #remove stored files older than 1 day.
@@ -264,7 +261,7 @@ checkDNS
 
 if [[ -d ${VPN_PROVIDER_HOME} ]]; then
     log "INFO" "NORDVPN: Removing existing configs in ${VPN_PROVIDER_HOME}"
-    find ${VPN_PROVIDER_HOME} -type f ! -name '*.sh' -delete
+    find ${VPN_PROVIDER_HOME} -type f -name '*.ovpn' -delete
 fi
 
 #get config based on server name

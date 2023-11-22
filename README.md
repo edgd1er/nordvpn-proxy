@@ -55,7 +55,8 @@ The container is expecting three parameters to select the vpn server:
 * EXIT_WHEN_IP_NOTEXPECTED=(0|1) # stop container when detected network is not as expected (based on /24 networks)
 * [NORDVPN_SERVER](https://nordvpn.com/api/server/stats)=<country><#>.nordvpn.com: eg: nl568.nordvpn.com, get configuration based on server's fqdn, bypassing all api's recommendations. Connection may fail when the server is offline or overloaded. has precedence over NORDVPN_COUNTRY and NORDVPN_CATEGORY.
 * NORDVPN_TESTS=[1-4], simple tests to test basic api filtering functions. 
-* WRITE_OVPN_STATUS=(0|1): write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status. you may mount the file to get the openvpn status outside the container. 
+* WRITE_OVPN_STATUS=(0|1): write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status. you may mount the file to get the openvpn status outside the container.
+* WAITSEC=30, default value, time to wait between two vpn login.
 
 # How to run the container
 
