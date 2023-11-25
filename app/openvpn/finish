@@ -14,5 +14,11 @@ for p in $(pgrep ${DAEMON}); do kill $p; done
 sleep 2
 for p in $(pgrep ${DAEMON}); do kill -9 $p; done
 route add default dev eth0
-echo "nameserver 127.0.0.1" >/etc/resolv.conf
+
+# restore original resolv.conf
+[[ -f /config/etc_resolv.conf ]] && cp -vf /etc/resolv.conf /config/etc_resolv.conf
+# restore default route if needed
+defaultRoute
+
 log "INFO: ${DAEMON}: stopped"
+

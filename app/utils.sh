@@ -27,7 +27,6 @@ fi
 #easier reuse of a multi project script
 export VPN_PROVIDER_HOME=${CONFIGDIR}
 
-
 log() {
     level=$1
     shift +1
@@ -47,4 +46,15 @@ write_status_file() {
         echo ${STATUS} >${OVPN_STATUS_FILE}
         log "HEALTHCHECK: OVPN status (${STATUS}) written to ${OVPN_STATUS_FILE}"
     fi
+}
+
+defaultRoute() {
+    #sauvegarde du fichier
+    [[ -f /config/etc_resolv.conf ]] && cp -vf /etc/resolv.conf /config/etc_resolv.conf
+    currentIp=$(ip -j a | jq -r '.[]|select(.ifname|contains("eth0"))| .addr_info[0].local')
+    GW=${currentIp%%[0-9]}1
+    while [ 0 -ne $(route -n | grep -c ^0.0.0.0) ]; do
+        route del default
+    done
+    /sbin/ip route add default via "${GW}" dev eth0
 }

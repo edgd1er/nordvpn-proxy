@@ -25,6 +25,11 @@ export NORDVPN_PROTOCOL
 NORDVPN_CATEGORY=${NORDVPN_CATEGORY:-P2P}
 export NORDVPN_CATEGORY
 
+#Main
+
+# backup /etc/resolv.conf if not present (restored when openvpn fails)
+[[ -f /config/etc_resolv.conf ]] && cp -vf /etc/resolv.conf /config/etc_resolv.conf
+
 # Create a tun device see: https://www.kernel.org/doc/Documentation/networking/tuntap.txt
 if [ ! -c /dev/net/tun ]; then
     log "OVPN: Creating tun interface /dev/net/tun"
@@ -95,6 +100,7 @@ if [[ $DEBUG -eq 1 ]]; then
     cat ${confFile}
     log "OVPN: OPENVPN_PARAMETERS: ${OPENVPN_PARAMETERS}"
 fi
+
 eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
 if [[ -n ${LOCAL_NETWORK:-""} ]]; then
     log "OVPN: LOCAL_NETWORK: ${LOCAL_NETWORK}, Gateway: ${GW}, device ${INT}"
