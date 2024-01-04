@@ -92,7 +92,7 @@ services:
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
 #      - NORDVPN_USER=<email>
 #      - NORDVPN_PASS='<pass>'
-      - NORDVPN_COUNTRY=germany #Optional, by default, servers in user's coyntry.
+      - NORDVPN_COUNTRY=germany #Optional, by default, servers in user's country.
       - NORDVPN_PROTOCOL=udp #Optional, udp by default, udp or tcp
       - NORDVPN_CATEGORY=p2p #Optional, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
       - NORDVPN_LOGIN=<email> #Not required if using secrets
