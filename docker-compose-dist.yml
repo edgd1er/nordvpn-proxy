@@ -38,6 +38,9 @@ services:
       - CRON="*/10 * * * *" # empty to disable server's load check and display.
     secrets:
       - NORDVPN_CREDS
+    # Work around for https://github.com/edgd1er/nordvpn-proxy/issues/38
+    ulimits:
+      nofile: 262144
 
 secrets:
   NORDVPN_CREDS:
