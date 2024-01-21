@@ -63,7 +63,13 @@ The container is expecting three parameters to select the vpn server:
 * Just copy/paste the grey text block starting with version 3.8. to a file named docker-compose.yml
 * Set values for NORDVPN_TECHNOLOGY, NORDVPN_PROTOCOL, NORDVPN_COUNTRY
 * adapt if needed LOCAL_NETWORK, TZ
-* create file nordvpn_login containing your login, nordvpn_pass containing your password
+* create file nordvpn_creds containing your login in the first line and your password in the second line.
+
+nordvpn_creds:
+```
+thisismyusername
+thisismypassword
+```
 * start the container: docker compose up -d
 
 once the container is started, you will see in the logs these two lines, indicating that both socks and http proxies are up.
