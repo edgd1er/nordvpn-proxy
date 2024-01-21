@@ -70,6 +70,14 @@ nordvpn_creds:
 thisismyusername
 thisismypassword
 ```
+
+Nordvpn openvpn credentials are to be found following that procedure:
+* Go to NordVPN website and log in
+* Under accounts - Services - click NordVPN
+* Click - Set up NordVPN manually - at the bottom right of the page.
+* You will receive a verification code in your email that you use for NordVPN services. Type the code in the popup window the preceded the email check.
+* Copy the credentials using the “Copy” buttons on the right for your new encrypted user name and password and paste them in nordvpn_creds
+
 * start the container: docker compose up -d
 
 once the container is started, you will see in the logs these two lines, indicating that both socks and http proxies are up.
@@ -148,3 +156,13 @@ To ensure that little or no traffic is forwarded unprotected, services are stopp
 - when openvpn returns a status NOTCONNECTED, all services are stopped, openvpn is restarted. when ok, dante and tinyproxy are started.(checked every 5 minutes)
 - when openvpn service is stopped, the down phase (runit feature) stops all other services.
 - when the tun interface is disconnected, openvpn fires the down.sh script, stopping all services. 
+
+
+# Other image
+
+Another image is available using nordvpn's client. Openvpn and wireguard (nordlynx) protocols are available. better speed may be achieved with wireguard.
+
+| names          | links                                                  |
+|----------------|--------------------------------------------------------|
+| nordlynx-proxy | image: https://hub.docker.com/r/edgd1er/nordlynx-proxy |
+| nordlynx-proxy | github: https://github.com/edgd1er/nordlynx-proxy      |

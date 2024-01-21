@@ -5,3 +5,4 @@ docker-compose.yml
 nordvpn_*
 !myconfig
 myconfig/
+README.md
