@@ -40,8 +40,11 @@ RUN    echo "####### Changing permissions #######" && \
     find /etc/service/ -type f -exec chmod u+x {} \; && \
     touch /etc/service/unbound/down /etc/service/dante/down
 
-HEALTHCHECK --interval=5m --timeout=20s --start-period=1m \
-  CMD if test $( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ; then exit 0; else exit 1; fi
+COPY ./healthcheck.sh /healthcheck.sh
+
+RUN chmod +x /healthcheck.sh
+
+HEALTHCHECK --interval=5s --timeout=2s --start-period=8s --retries=10 CMD /healthcheck.sh
 
 WORKDIR /etc/service
 

@@ -1,5 +1,6 @@
 ./*.yml
 ./*.sh
+!healthcheck.sh
 *.md
 Makefile
 /myconfig/
