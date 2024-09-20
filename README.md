@@ -18,6 +18,10 @@ Added docker image version for raspberry.
 
 Whenever the connection is lost the unbound, tinyproxy and sock daemons are killed, disconnecting all active connections (tunnel down event).
 
+Healtcheck tests dns resolution, openvpn status (connected), https/socks proxies.
+
+Protected status was checked through nordvpn api, as the endpoint was removed, this image does not test its protected status.
+As long as openvpn returns a connected status, vpn is up.
 
 ## What is this?
 

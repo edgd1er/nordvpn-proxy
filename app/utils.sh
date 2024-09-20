@@ -58,3 +58,62 @@ defaultRoute() {
     done
     /sbin/ip route add default via "${GW}" dev eth0
 }
+
+getCurrentIp() {
+    ip1=$(curl -sq "https://nordvpn.com/wp-admin/admin-ajax.php?action=get_user_info_data" | jq -r ".host.ip_address")
+    if [[ ${ip1} =~ ^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$ ]]; then
+        echo ${ip1}
+    else
+        ip2=$(curl --max-time 1 -s --socks5 localhost:1080 http://checkip.amazonaws.com)
+        echo ${ip2}
+    fi
+}
+
+getTinyConf() {
+  grep -v ^# /config/tinyproxy.conf | sed "/^$/d"
+}
+
+getDanteConf() {
+  grep -v ^# /config/dante.conf | sed "/^$/d"
+}
+
+getTinyListen() {
+    grep -E  "Listen [0-9]+" /config/tinyproxy.conf | cut -d' ' -f2
+}
+
+changeTinyListenAddress() {
+  listen_ip4=$(getTinyListen)
+  current_ip4=$(getEthIp)
+  if [[ ! -z ${listen_ip4} ]] && [[ ! -z ${current_ip4} ]] && [[ ${listen_ip4} != ${current_ip4} ]]; then
+    #dante ecoute sur le nom de l'interface eth0
+    echo "Tinyproxy: changing listening address from ${listen_ip4} to ${current_ip4}"
+    sed -i "s/${listen_ip4}/${current_ip4}/" /etc/tinyproxy/tinyproxy.conf
+    supervisorctl restart tinyproxy
+  fi
+}
+
+
+checkproxies() {
+    #disable output if -s arg is given
+    if [[ $* =~ -s ]]; then
+        log(){ true; }
+    fi
+    FAILED=0
+    #check tinyproxy
+    IP=$(curl -sqx http://$(getTinyListen):${TINYPORT} "https://ifconfig.me/ip")
+    if [[ $? -eq 0 ]]; then
+        log "INFO: IP is ${IP}"
+    else
+        log "WARNING: curl through http proxy to https://ifconfig.me/ip failed"
+        ((FAILED += 1))
+    fi
+    #check socks
+    IP=$(curl -sqx socks5://localhost:${DANTE_PORT} "https://ifconfig.me/ip")
+    if [[ $? -eq 0 ]]; then
+        log "INFO: IP is ${IP}"
+    else
+        log "WARNING: curl through socks proxy to https://ifconfig.me/ip failed"
+        ((FAILED += 1))
+    fi
+    return ${FAILED}
+}
