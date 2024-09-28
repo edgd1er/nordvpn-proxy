@@ -38,6 +38,10 @@ if [ ! -c /dev/net/tun ]; then
     chmod 600 /dev/net/tun
 fi
 
+if ! nslookup ${HEALTH_CHECK_HOST:-"google.com"} 1>/dev/null 2>&1; then
+    fatal_error "WARNING: initial DNS resolution test failed"
+fi
+
 /etc/service/openvpn/configure-openvpn.sh
 nbFiles=$(ls -1 ${CONFIGDIR}/*.ovpn | grep -c ovpn)
 confFile=$(ls -1 ${CONFIGDIR}/*.ovpn | grep -v default.ovpn)

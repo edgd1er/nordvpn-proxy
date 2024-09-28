@@ -24,6 +24,13 @@ set -e -u -o pipefail
 
 #Variables
 MAIN_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"/.."
+#debug curl
+if [[ ${DEBUG,,} =~ (true|1) ]]; then
+    CURLBIN="$(which curl) "
+else
+    CURLBIN="$(which curl) -s "
+fi
+
 if [ -d /config ]; then
     #load var at runtime
     [[ -f /etc/service/utils.sh ]] && source /etc/service/utils.sh || true
@@ -49,19 +56,19 @@ done
 #Nordvpn has a fetch limit, storing json to prevent hitting the limit.
 if [[ -z ${json_countries} ]]; then
     log "INFO" "NORDVPN: Fetching countries from nordvpn"
-    json_countries=$(curl -s ${nordvpn_api}/v1/servers/countries)
+    json_countries=$(${CURLBIN} ${nordvpn_api}/v1/servers/countries)
     echo ${json_countries} >${CONFIGDIR}/json_countries
 fi
 #groups used for NORDVPN_CATEGORY
 if [[ -z ${json_groups} ]]; then
     log "INFO" "NORDVPN: Fetching groups from nordvpn"
-    json_groups=$(curl -s ${nordvpn_api}/v1/servers/groups)
+    json_groups=$(${CURLBIN} ${nordvpn_api}/v1/servers/groups)
     echo ${json_groups} >${CONFIGDIR}/json_groups
 fi
 #technologies (NORDVPN_PROTOCOL) not used as only openvpn_udp and openvpn_tcp are tested.
 if [[ -z ${json_technologies} ]]; then
     log "INFO" "NORDVPN: Fetching technologies from nordvpn"
-    json_technologies=$(curl -s ${nordvpn_api}/v1/technologies)
+    json_technologies=$(${CURLBIN} ${nordvpn_api}/v1/technologies)
     echo ${json_technologies} >${CONFIGDIR}/json_technologies
 fi
 
@@ -102,7 +109,7 @@ test4ServerName_given() {
     export NORDVPN_PROTOCOL='tcp'
     export NORDVPN_server=''
     #get first server from US (228) with tcp
-    export NORDVPN_SERVER=$(curl -s 'https://api.nordvpn.com/v1/servers/recommendations?filters\[country_id\]=228&filters\[servers_technologies\]\[identifier\]=openvpn_tcp&limit=1' | jq -r .[].hostname)
+    export NORDVPN_SERVER=$(${CURLBIN} 'https://api.nordvpn.com/v1/servers/recommendations?filters\[country_id\]=228&filters\[servers_technologies\]\[identifier\]=openvpn_tcp&limit=1' | jq -r .[].hostname)
     log "INFO" "NORDVPN_TESTS: expected a config file for server ${NORDVPN_SERVER}"
     export NORDVPN_REG="us[0-9]+.nordvpn.com"
 }
@@ -190,7 +197,7 @@ select_hostname() {
     vpnserver=""
     i=0
     while [[ -z ${vpnserver} ]] && [ ${i} -lt 10 ]; do
-        vpnserver=$(curl -s "${nordvpn_api}/v1/servers/recommendations?${filters}limit=1" | jq --raw-output ".[].hostname")
+        vpnserver=$(${CURLBIN} "${nordvpn_api}/v1/servers/recommendations?${filters}limit=1" | jq --raw-output ".[].hostname")
         ((i++))
         if [[ ${i} -eq 5 ]]; then break; fi
         if [[ -z ${vpnserver} ]]; then
@@ -203,7 +210,7 @@ select_hostname() {
         #hostname=$(curl "${nordvpn_api}/v1/servers/recommendations?limit=1" | jq --raw-output ".[].hostname")
         echo ''
     else
-        load=$(curl -s ${nordvpn_api}/server/stats/${vpnserver} | jq .percent)
+        load=$(${CURLBIN} ${nordvpn_api}/server/stats/${vpnserver} | jq .percent)
         log "INFO" "OVPN: Best server : ${vpnserver}, load: ${load}"
     fi
     echo ${vpnserver}
@@ -235,7 +242,7 @@ download_hostname() {
         log "WARNING" "NORDVPN: ${VPN_PROVIDER_HOME} is not writable, outputing ${ovpnName} to stdout"
         outfile=""
     fi
-    curl -sSL ${nordvpn_cdn} ${outfile}
+    ${CURLBIN} -SL ${nordvpn_cdn} ${outfile}
 }
 
 checkDNS() {
@@ -268,7 +275,7 @@ fi
 NORDVPN_SERVER=${NORDVPN_SERVER:-""}
 if [[ -n ${NORDVPN_SERVER} ]]; then
     selected=${NORDVPN_SERVER}
-    load=$(curl -s ${nordvpn_api}/server/stats/${NORDVPN_SERVER} | jq .percent 2>/dev/null)
+    load=$(${CURLBIN} ${nordvpn_api}/server/stats/${NORDVPN_SERVER} | jq .percent 2>/dev/null)
     log "INFO" "OVPN: server : ${NORDVPN_SERVER}, load: ${load:-N/A}"
 fi
 
@@ -301,7 +308,7 @@ fi
 NORDVPN_SERVER=${NORDVPN_SERVER:-""}
 if [[ -n ${NORDVPN_SERVER} ]]; then
     selected=${NORDVPN_SERVER}
-    load=$(curl -s ${nordvpn_api}/server/stats/${NORDVPN_SERVER} | jq .percent 2>/dev/null)
+    load=$(${CURLBIN} ${nordvpn_api}/server/stats/${NORDVPN_SERVER} | jq .percent 2>/dev/null)
     log "INFO" "OVPN: server : ${NORDVPN_SERVER}, load: ${load:-N/A}"
 else
     log "INFO" "Checking NORDPVN API responses"

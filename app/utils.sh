@@ -37,6 +37,7 @@ log() {
 
 fatal_error() {
     printf "ERROR: %b\n" "$*" >&2
+    sleep 30
     exit 1
 }
 
