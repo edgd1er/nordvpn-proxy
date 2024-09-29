@@ -20,7 +20,7 @@ NORDVPN_TESTS=${NORDVPN_TESTS:-''}
 CONFIGDIR=/config
 
 #standalone tests for api
-if [[ ! -d /config ]]; then
+if [[ ! -d ${CONFIGDIR} ]]; then
     export CONFIGDIR=/tmp/config
     mkdir -p ${CONFIGDIR}
 fi
@@ -41,6 +41,18 @@ fatal_error() {
     exit 1
 }
 
+getExtIp() {
+    ip -j -4 addr show tun0 | jq -r .[].addr_info[0].local
+}
+
+getEthIp() {
+    ip -j -4 a show eth0 | jq -r .[].addr_info[0].local
+}
+
+getEthCidr() {
+    ip -j -4 a show eth0 | jq -r '.[].addr_info[0]|"\( .broadcast)/\(.prefixlen)"' | sed 's/255/0/g'
+}
+
 write_status_file() {
     STATUS=$(echo ${1} | grep -oE "(NOT|)CONNECTED")
     if [[ ${WRITE_OVPN_STATUS} -ne 0 ]]; then
@@ -49,9 +61,34 @@ write_status_file() {
     fi
 }
 
+check_dns_service() {
+    unbound_resolv=$(grep -c "127.0.0.1" /etc/resolv.conf)
+    ubound_status=$(sv status unbound | grep -c "run")
+    still_using_unbound=$(expr ${unbound_resolv} + ${ubound_status})
+    if [ 2 -ne ${still_using_unbound:-0} ]; then
+        log "RESOLVCHECK: ERROR: Not using unbound.restarting it."
+        sv restart unbound
+    fi
+}
+
+check_dnssec() {
+    msg=""
+    dns_servfail_expected=$(dig sigfail.verteiltesysteme.net @127.0.0.1 -p 53 | grep -c SERVFAIL) || true
+    dns_ip_expected=$(dig +short sigok.verteiltesysteme.net @127.0.0.1 -p 53)
+
+    if [[ 0 -eq ${dns_servfail_expected} ]]; then
+        msg="SERVAIL expected not found."
+    fi
+    if [[ -z ${dns_ip_expected} ]]; then
+        [[ 1 -le ${#msg} ]] && msg="${msg}, " || true
+        msg="${msg} ip expected, none"
+    fi
+    [[ -n ${msg} ]] && log "WARNING: HEALTHCHECK: DNSSEC: ${msg}" || true
+}
+
 defaultRoute() {
     #sauvegarde du fichier
-    [[ -f /config/etc_resolv.conf ]] && cp -vf /etc/resolv.conf /config/etc_resolv.conf
+    [[ -f ${CONFIGDIR}/etc_resolv.conf ]] && cp -vf /etc/resolv.conf ${CONFIGDIR}/etc_resolv.conf
     currentIp=$(ip -j a | jq -r '.[]|select(.ifname|contains("eth0"))| .addr_info[0].local')
     GW=${currentIp%%[0-9]}1
     while [ 0 -ne $(route -n | grep -c ^0.0.0.0) ]; do
@@ -71,47 +108,88 @@ getCurrentIp() {
 }
 
 getTinyConf() {
-  grep -v ^# /config/tinyproxy.conf | sed "/^$/d"
+    grep -v ^# ${CONFIGDIR}/tinyproxy.conf | sed "/^$/d"
 }
 
 getDanteConf() {
-  grep -v ^# /config/dante.conf | sed "/^$/d"
+    grep -v ^# ${CONFIGDIR}/dante.conf | sed "/^$/d"
 }
 
 getTinyListen() {
-    grep -E  "Listen [0-9]+" /config/tinyproxy.conf | cut -d' ' -f2
+    grep -E "Listen [0-9]+" ${CONFIGDIR}/tinyproxy.conf | cut -d' ' -f2
 }
 
 changeTinyListenAddress() {
-  listen_ip4=$(getTinyListen)
-  current_ip4=$(getEthIp)
-  if [[ ! -z ${listen_ip4} ]] && [[ ! -z ${current_ip4} ]] && [[ ${listen_ip4} != ${current_ip4} ]]; then
-    #dante ecoute sur le nom de l'interface eth0
-    echo "Tinyproxy: changing listening address from ${listen_ip4} to ${current_ip4}"
-    sed -i "s/${listen_ip4}/${current_ip4}/" /etc/tinyproxy/tinyproxy.conf
-    supervisorctl restart tinyproxy
-  fi
+    listen_ip4=$(getTinyListen)
+    current_ip4=$(getEthIp)
+    if [[ ! -z ${listen_ip4} ]] && [[ ! -z ${current_ip4} ]] && [[ ${listen_ip4} != ${current_ip4} ]]; then
+        #dante ecoute sur le nom de l'interface eth0
+        echo "Tinyproxy: changing listening address from ${listen_ip4} to ${current_ip4}"
+        sv stop tinyproxy
+        sed -i "s/${listen_ip4}/${current_ip4}/" ${CONFIGDIR}/tinyproxy.conf
+        sv start tinyproxy
+    fi
 }
 
+## tests functions
+testhproxy() {
+    TCF=/run/secrets/TINY_CREDS
+    if [[ -f ${TCF} ]]; then
+        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
+    else
+        TCREDS=""
+    fi
+    IP=$(curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${WEBPROXY_PORT:-8888} "https://ifconfig.me/ip")
+    if [[ $? -eq 0 ]]; then
+        echo "IP is ${IP}"
+    else
+        echo "curl through http proxy to https://ifconfig.me/ip failed"
+        ((FAILED += 1))
+    fi
+}
+
+testsproxy() {
+    TCF=/run/secrets/TINY_CREDS
+    if [[ -f ${TCF} ]]; then
+        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
+    else
+        TCREDS=""
+    fi
+    IP=$(curl -m5 -sqx socks5://${TCREDS}${HOSTNAME}:${SOCK_PORT} "https://ifconfig.me/ip")
+    if [[ $? -eq 0 ]]; then
+        echo "IP is ${IP}"
+    else
+        echo "curl through socks proxy to https://ifconfig.me/ip failed"
+        ((FAILED += 1))
+    fi
+}
 
 checkproxies() {
     #disable output if -s arg is given
     if [[ $* =~ -s ]]; then
-        log(){ true; }
+        log() { true; }
     fi
     FAILED=0
     #check tinyproxy
-    IP=$(curl -sqx http://$(getTinyListen):${TINYPORT} "https://ifconfig.me/ip")
+    IP=$(
+        TCF=/run/secrets/TINY_CREDS
+        [[ -f ${TCF} ]] && TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@" || TCREDS=""
+        curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${WEBPROXY_PORT:-8888} "https://ifconfig.me/ip"
+    )
     if [[ $? -eq 0 ]]; then
-        log "INFO: IP is ${IP}"
+        log "INFO: IP is ${IP} for http proxy"
     else
         log "WARNING: curl through http proxy to https://ifconfig.me/ip failed"
         ((FAILED += 1))
     fi
     #check socks
-    IP=$(curl -sqx socks5://localhost:${DANTE_PORT} "https://ifconfig.me/ip")
+    IP=$(
+        TCF=/run/secrets/TINY_CREDS
+        [[ -f ${TCF} ]] && TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@" || TCREDS=""
+        curl -4 -sm10 -x socks5h://${TCREDS}${HOSTNAME}:1080 "https://ifconfig.me/ip"
+    )
     if [[ $? -eq 0 ]]; then
-        log "INFO: IP is ${IP}"
+        log "INFO: IP is ${IP} for socks proxy"
     else
         log "WARNING: curl through socks proxy to https://ifconfig.me/ip failed"
         ((FAILED += 1))

@@ -7,7 +7,10 @@ DAEMON=sockd
 
 log "INFO" "########################################################"
 log "INFO: ${DAEMON}: stopping"
-[[ -f /run/${DAEMON}.pid ]] && kill $(cat /run/${DAEMON}.pid) && rm -f /run/${DAEMON}.pid || true
+if [[ -f /run/${DAEMON}.pid ]] && [[ -n $(</run/${DAEMON}.pid) ]]; then
+    kill $(</run/${DAEMON}.pid)
+    rm -f /run/${DAEMON}.pid
+fi
 sleep 1
 for p in $(pgrep ${DAEMON}); do kill $p; done
 sleep 2

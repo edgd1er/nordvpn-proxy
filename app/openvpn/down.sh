@@ -7,7 +7,7 @@
 #execute up/down scripts if present
 [[ -f /etc/openvpn/down.sh ]] && bash -x /etc/openvpn/down.sh
 
-for s in unbound dante tinyproxy
+for s in dante tinyproxy unbound
   do
     log "INFO: OPENVPN: down: stopping ${s}"
     sv stop ${s}

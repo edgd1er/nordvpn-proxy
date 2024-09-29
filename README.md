@@ -14,11 +14,11 @@ This is a NordVPN client docker container using openvpn that use the recommended
 
 VPN servers selection is performed through nordnvpn API.(country, technology, protocol)
 
-Added docker image version for raspberry.  
+Added docker image version for amd64,arm64, arm/v7, arm/v6  
 
 Whenever the connection is lost the unbound, tinyproxy and sock daemons are killed, disconnecting all active connections (tunnel down event).
 
-Healtcheck tests dns resolution, openvpn status (connected), https/socks proxies.
+Healtcheck tests dns resolution, openvpn status (connected), tinyproxy listening address, https/socks proxies.
 
 Protected status was checked through nordvpn api, as the endpoint was removed, this image does not test its protected status.
 As long as openvpn returns a connected status, vpn is up.
@@ -90,8 +90,9 @@ nordvpn-proxy  | INFO: OPENVPN: up: starting tinyproxy
 .....
 nordvpn-proxy  | ok: run: tinyproxy: (pid 103) 1s, normally down
 
+see docker-compose-dist.yml for an example to setup and run this image. 
+
 ```yaml
-version: '3.8'
 services:
   proxy:
     image: edgd1er/nordvpn-proxy:latest
@@ -108,12 +109,10 @@ services:
     environment:
       - TZ=America/Chicago
       - DNS=1.1.1.1@853#cloudflare-dns.com 1.0.0.1@853#cloudflare-dns.com
-#      - NORDVPN_USER=<email>
-#      - NORDVPN_PASS='<pass>'
       - NORDVPN_COUNTRY=germany #Optional, by default, servers in user's country.
       - NORDVPN_PROTOCOL=udp #Optional, udp by default, udp or tcp
       - NORDVPN_CATEGORY=p2p #Optional, Africa_The_Middle_East_And_India, Asia_Pacific, Europe, Onion_Over_VPN, P2P, Standard_VPN_Servers, The_Americas
-      - NORDVPN_LOGIN=<email> #Not required if using secrets
+      - NORDVPN_USER=<email> #Not required if using secrets
       - NORDVPN_PASS=<pass> #Not required if using secrets
       - OPENVPN_PARAMETERS= #optional, empty by default, overrides openvpn config file with parameters
       - OPENVPN_LOGLEVEL= #Optional, define openvpn verbose level 0-9
@@ -125,14 +124,19 @@ services:
       - DANTE_ERRORLOG=/dev/stdout #Optional, /dev/null by default
       - CRON_LOGLEVEL=9 #optional, from 0 to 9, 8 default, 9 quiet.
       - DEBUG=0 #(0/1) activate debug mode for scripts, dante, nginx, tinproxy
+      - TINYUSER=username #define http/socks proxy password, not required if using secrets
+      - TINYPASS=password #define http/socks proxy password, not required if using secrets
     secrets:
         - NORDVPN_CREDS
+        - TINY_CREDS
     volumes:
       - ./myconfig/:/config/
 
 secrets:
     NORDVPN_CREDS:
         file: ./nordvpn_creds
+    TINY_CREDS:
+    file: ./tiny_creds
 ```
 # Healthcheck
 
@@ -145,15 +149,13 @@ script checks for:
 if any of these fail, services are restarted.
 
 dockerfile healtcheck:
-* use NORDVPN api to validate protection
-```
-if test $( curl -m 10 -s https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ; then exit 0; else exit 1; fi 
-```
+* dns check
+* check openvpn status
+* check if eth0 ip has changed, change tinyproxy listen address if needed.
+* check ip through proxies
 
 # Kill switch
-
 When vpn interface (tun) is up, default route through unprotected interface (eth0) is removed.
-
 To ensure that little or no traffic is forwarded unprotected, services are stopped on any of these events:
 
 - when the api returns that the status is not protected, the container stops.(every 5min)

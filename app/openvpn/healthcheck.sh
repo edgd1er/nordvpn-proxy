@@ -19,21 +19,6 @@ fi
 HOST=${HEALTH_CHECK_HOST:-google.com}
 
 #Functions
-check_dnssec() {
-    msg=""
-    dns_servfail_expected=$(dig sigfail.verteiltesysteme.net @127.0.0.1 -p 53 | grep -c SERVFAIL) || true
-    dns_ip_expected=$(dig +short sigok.verteiltesysteme.net @127.0.0.1 -p 53)
-
-    if [[ 0 -eq ${dns_servfail_expected} ]]; then
-        msg="SERVAIL expected not found."
-    fi
-    if [[ -z ${dns_ip_expected} ]]; then
-        [[ 1 -le ${#msg} ]] && msg="${msg}, " || true
-        msg="${msg} ip expected, none"
-    fi
-    [[ -n ${msg} ]] && log "WARNING: HEALTHCHECK: DNSSEC: ${msg}" || true
-}
-
 checkWriteIp() {
     myip=${1:-}
     if [[ -z ${myip} ]]; then
@@ -100,6 +85,9 @@ check_dnssec
 
 #check openvpn status
 check_openvpn
+
+#check if eth0 ip has changed, change tinyproxy listen address if needed.
+changeTinyListenAddress
 
 #check ip
 checkproxies ${1:-"-s"}

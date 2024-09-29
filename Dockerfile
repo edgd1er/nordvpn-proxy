@@ -24,15 +24,21 @@ EXPOSE ${DANTE_PORT}
 EXPOSE ${TINY_PORT}
 
 #hadolint ignore=DL3018
-RUN echo "####### Installing packages #######" && \
-    echo "@community https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    apk --no-cache --update add bash bash-completion wget curl runit tzdata jq ip6tables ufw@community openvpn shadow \
-    bind-tools openssh dante-server ca-certificates unzip unbound socat vim tinyproxy && \
-	mkdir -p /openvpn/ -p /etc/service/openvpn /etc/service/dante /etc/service/crond /etc/service/unbound && \
-    touch /etc/service/dante/down /etc/service/unbound/down && \
-    curl -s https://www.internic.net/domain/named.cache -o /etc/unbound/root.hints && \
-	echo "####### Removing cache #######" && \
-	rm -rf /*.zip -- /var/cache/apk/*
+RUN echo "####### Installing packages #######"  \
+    && echo "@community https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk --no-cache --update add bash bash-completion wget curl runit tzdata jq ip6tables ufw@community openvpn shadow \
+       bind-tools openssh dante-server ca-certificates unzip unbound socat vim tinyproxy \
+	&& mkdir -p /openvpn/ -p /etc/service/openvpn /etc/service/dante /etc/service/crond /etc/service/unbound \
+    && touch /etc/service/dante/down /etc/service/unbound/down \
+    && curl -s https://www.internic.net/domain/named.cache -o /etc/unbound/root.hints \
+    && echo "alias checkip='curl -sm 10 \"https://zx2c4.com/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checkhttp='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(head -1 \${TCF}):\$(tail -1 \${TCF})@\" || TCREDS=\"\";curl -4 -sm 10 -x http://\${TCREDS}\${HOSTNAME}:\${WEBPROXY_PORT:-8888} \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias checksocks='TCF=/run/secrets/TINY_CREDS; [[ -f \${TCF} ]] && TCREDS=\"\$(head -1 \${TCF}):\$(tail -1 \${TCF})@\" || TCREDS=\"\";curl -4 -sm10 -x socks5h://\${TCREDS}\${HOSTNAME}:1080 \"https://ifconfig.me/ip\";echo'" | tee -a ~/.bashrc \
+    && echo "alias gettiny='grep -v ^# /config/tinyproxy.conf | sed \"/^$/d\"'" | tee -a ~/.bashrc \
+    && echo "alias getdante='grep -v ^# /config/dante.conf | sed \"/^$/d\"'" | tee -a ~/.bashrc \
+    && echo "alias dltest='curl http://appliwave.testdebit.info/100M.iso -o /dev/null'" | tee -a ~/.bashrc \
+	&& echo "####### Removing cache #######" \
+	&& rm -rf /*.zip -- /var/cache/apk/*
 COPY baseconfig /baseconfig/
 COPY ./app /etc/service/
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
