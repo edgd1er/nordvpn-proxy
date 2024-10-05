@@ -48,15 +48,6 @@ check_openvpn() {
     foundIp=$(curl -s https://myexternalip.com/raw)
     [[ ${foundIp} =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\. ]] && net_found=${BASH_REMATCH[*]}
 
-    if [[ -n ${foundIp} ]]; then
-        checkWriteIp "${foundIp}"
-        # at least be in the same network
-        if [[ "${net_found}" != "${net_expected}" ]]; then
-            log "WARNING: HEALTHCHECK: ${nordvpn_hostname} : effective network ${net_found} (real IP:${foundIp}) is not the expected one ${net_expected} (expected ip: ${expectedIp})."
-            [[ 1 -eq ${EXIT_WHEN_IP_NOTEXPECTED:-1} ]] && log "ERROR: HEALTHCHECK: exiting as requested per EXIT_WHEN_IP_NOTEXPECTED(=${EXIT_WHEN_IP_NOTEXPECTED})" && exit 1
-        fi
-    fi
-
     LOAD=$(echo "load-stats" | socat -s - ${SOCKET} | tail -1)
     STATE=$(echo "state" | socat -s - ${SOCKET} | sed -n '2p')
     write_status_file ${STATE}
@@ -94,6 +85,10 @@ checkproxies ${1:-"-s"}
 
 if [[ $? -gt 0 ]]; then
     log "ERROR: proxies check failed"
+    exit 1
+fi
+
+if [[ 1 -eq ${EXIT_WHEN_IP_NOTASEXPECTED:-0} ]] && ! getStatusFromNordvpn ; then
     exit 1
 fi
 

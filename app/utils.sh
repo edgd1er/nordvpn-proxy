@@ -196,3 +196,14 @@ checkproxies() {
     fi
     return ${FAILED}
 }
+
+getStatusFromNordvpn() {
+    nvpn_status="$(curl -s 'https://nordvpn.com/wp-admin/admin-ajax.php?action=get_user_info_data')"
+    status=$(echo $nvpn_status | jq -r .status)
+    myip=$(echo $nvpn_status | jq -r .host.ip_address)
+    if [[ "false" == ${status} ]]; then
+        log "WARNING: not protected, status is ${status}, ip ${myip}"
+        return 1
+    fi
+    return 0
+}

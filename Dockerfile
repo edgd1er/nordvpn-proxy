@@ -47,7 +47,7 @@ RUN    echo "####### Changing permissions #######" && \
     touch /etc/service/unbound/down /etc/service/dante/down
 
 
-HEALTHCHECK --interval=5s --timeout=2s --start-period=1m --retries=10 CMD /etc/service/openvpn/healthcheck.sh
+HEALTHCHECK --interval=1m --timeout=2s --start-period=1m --retries=10 CMD /etc/service/openvpn/healthcheck.sh
 
 WORKDIR /etc/service
 
