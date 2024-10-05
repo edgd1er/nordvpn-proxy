@@ -139,7 +139,7 @@ testhproxy() {
     else
         TCREDS=""
     fi
-    IP=$(curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${WEBPROXY_PORT:-8888} "https://ifconfig.me/ip")
+    IP=$(curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${TINY_PORT:-8888} "https://ifconfig.me/ip")
     if [[ $? -eq 0 ]]; then
         echo "IP is ${IP}"
     else
@@ -155,7 +155,7 @@ testsproxy() {
     else
         TCREDS=""
     fi
-    IP=$(curl -m5 -sqx socks5://${TCREDS}${HOSTNAME}:${SOCK_PORT} "https://ifconfig.me/ip")
+    IP=$(curl -m5 -sqx socks5://${TCREDS}${HOSTNAME}:${DANTE_PORT} "https://ifconfig.me/ip")
     if [[ $? -eq 0 ]]; then
         echo "IP is ${IP}"
     else
@@ -174,7 +174,7 @@ checkproxies() {
     IP=$(
         TCF=/run/secrets/TINY_CREDS
         [[ -f ${TCF} ]] && TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@" || TCREDS=""
-        curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${WEBPROXY_PORT:-8888} "https://ifconfig.me/ip"
+        curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${TINY_PORT:-8888} "https://ifconfig.me/ip"
     )
     if [[ $? -eq 0 ]]; then
         log "INFO: IP is ${IP} for http proxy"
