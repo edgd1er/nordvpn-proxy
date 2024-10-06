@@ -207,3 +207,15 @@ getStatusFromNordvpn() {
     fi
     return 0
 }
+
+getStatusFromNordvpn2() {
+    nvpn_status="$(curl -s 'https://api.nordvpn.com/v1/helpers/ips/insights')"
+    status=$(echo $nvpn_status | jq -r .protected)
+    myip=$(echo $nvpn_status | jq -r .ip)
+    country=$(echo $nvpn_status | jq -r .country)
+    if [[ "false" == ${status} ]]; then
+        log "WARNING: not protected, status: ${status}, ip: ${myip}, country: ${country}"
+        return 1
+    fi
+    return 0
+}

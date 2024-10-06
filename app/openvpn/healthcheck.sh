@@ -88,7 +88,7 @@ if [[ $? -gt 0 ]]; then
     exit 1
 fi
 
-if [[ 1 -eq ${EXIT_WHEN_IP_NOTASEXPECTED:-0} ]] && ! getStatusFromNordvpn ; then
+if [[ 1 -eq ${EXIT_WHEN_IP_NOTASEXPECTED:-0} ]] && ! getStatusFromNordvpn2 ; then
     exit 1
 fi
 
