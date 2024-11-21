@@ -22,14 +22,9 @@ sed -i "s/DEBUG/${DANTE_DEBUG}/" ${DANTE_CONF}
 sed -i "s/DANTE_LOGLEVEL/${DANTE_LOGLEVEL}/" ${DANTE_CONF}
 
 #basic Auth
-TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
-if [[ -f ${TCREDS_SECRET_FILE} ]]; then
-    TINYUSER=$(head -1 ${TCREDS_SECRET_FILE})
-    TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
-fi
-if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
-    createUserForAuthifNeeded ${TINYUSER}
-    echo ${TINYUSER}:${TINYPASS} | chpasswd
+TCREDS=$(getTinyCred)
+if [[ -n ${TCREDS:-''} ]]; then
+    createUserForAuthifNeeded ${TCREDS}
     sed -i -r "s/#?socksmethod: .*/socksmethod: username/" ${DANTE_CONF}
 else
     sed -i -r "s/socksmethod: .*/socksmethod: none/" ${DANTE_CONF}

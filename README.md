@@ -64,7 +64,7 @@ The container is expecting three parameters to select the vpn server:
 
 # How to run the container
 
-* Just copy/paste the grey text block starting with version 3.8. to a file named docker-compose.yml
+* Just copy/paste the grey text block starting with version 3.8. to a file named compose.yml
 * Set values for NORDVPN_TECHNOLOGY, NORDVPN_PROTOCOL, NORDVPN_COUNTRY
 * adapt if needed LOCAL_NETWORK, TZ
 * create file nordvpn_creds containing your login in the first line and your password in the second line.

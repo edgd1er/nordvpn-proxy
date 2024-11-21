@@ -27,11 +27,11 @@ buildnc: ## build container with no cache
 
 down: ## stop and delete container
 		@echo "stop and delete container"
-		docker compose -f docker-compose.yml down -v
+		docker compose -f compose.yml down -v
 
 up: ## start container
 		@echo "start container"
-		docker compose -f docker-compose.yml up
+		docker compose -f compose.yml up
 
 nordvpnt1: ##test nordvpn api calls
 		@echo "test nordvpn api: when no walues, then defaulting is your country +tcp"

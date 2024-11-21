@@ -2,12 +2,12 @@
 
 set -uo pipefail
 #var
-HTTP_PORT=88$(grep -oP '(?<=\- "88)[^:]+' docker-compose.yml)
-SOCK_PORT=10$(grep -oP '(?<=\- "10)[^:]+' docker-compose.yml)
+HTTP_PORT=88$(grep -oP '(?<=\- "88)[^:]+' compose.yml)
+SOCK_PORT=10$(grep -oP '(?<=\- "10)[^:]+' compose.yml)
 PROXY_HOST="localhost"
 FAILED=0
 INTERVAL=4
-CONTAINER=$(grep -A1 services docker-compose.yml | grep -oP "(?<=  )[a-zA-Z]+")
+CONTAINER=$(grep -A1 services compose.yml | grep -oP "(?<=  )[a-zA-Z]+")
 CURLOPTS="-4s"
 
 #Functions
@@ -15,7 +15,7 @@ buildAndWait() {
     echo "Stopping and removing running containers"
     docker compose down -v
     echo "Building and starting image"
-    docker compose -f docker-compose.yml up -d --build
+    docker compose -f compose.yml up -d --build
     echo "Waiting for the container to be up.(every ${INTERVAL} sec)"
     logs=""
     n=0
@@ -54,8 +54,8 @@ testProxies() {
         TCREDS="${usertiny}:${passtiny}@"
         DCREDS=${TCREDS}
     else
-        usertiny=$(grep -oP "(?<=- TINYUSER=)[^ ]+" docker-compose.yml)
-        passtiny=$(grep -oP "(?<=- TINYPASS=)[^ ]+" docker-compose.yml)
+        usertiny=$(grep -oP "(?<=- TINYUSER=)[^ ]+" compose.yml)
+        passtiny=$(grep -oP "(?<=- TINYPASS=)[^ ]+" compose.yml)
         echo "Getting tinyCreds from compose: ${usertiny}:${passtiny}"
         TCREDS="${usertiny}:${passtiny}@"
         DCREDS=${TCREDS}

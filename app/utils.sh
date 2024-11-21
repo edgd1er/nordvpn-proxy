@@ -133,12 +133,7 @@ changeTinyListenAddress() {
 
 ## tests functions
 testhproxy() {
-    TCF=/run/secrets/TINY_CREDS
-    if [[ -f ${TCF} ]]; then
-        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
-    else
-        TCREDS=""
-    fi
+    TCREDS=$(getTinyCred)
     IP=$(curl -4 -sm 10 -x http://${TCREDS}${HOSTNAME}:${TINY_PORT:-8888} "https://ifconfig.me/ip")
     if [[ $? -eq 0 ]]; then
         echo "IP is ${IP}"
@@ -149,7 +144,7 @@ testhproxy() {
 }
 
 testsproxy() {
-    TCF=/run/secrets/TINY_CREDS
+    TCREDS=$(getTinyCred)
     if [[ -f ${TCF} ]]; then
         TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
     else
@@ -221,11 +216,30 @@ getStatusFromNordvpn2() {
 }
 
 createUserForAuthifNeeded(){
-    TINYUSER=${1:-'NotAUser'}
-    #expected error when user does not exist
-    tinyid=$(id -u ${TINYUSER}) || true
-    if [[ -z ${tinyid} ]]; then
-        adduser --gecos "" -H --disabled-password -s /sbin/nologin -G tinyproxy ${TINYUSER}
-        addgroup ${TINYUSER} tinyproxy
+    ARG1=${1:-':'}
+    IFS=':' read -r -a arr <<<"${ARG1}"
+    TINYUSER=${arr[0]}
+    if [[ -n $TINYUSER ]]; then
+        TINYPASS=${arr[1]::-1}
+        #expected error when user does not exist
+        tinyid=$(id -u ${TINYUSER}) || true
+        if [[ -z ${tinyid} ]]; then
+            adduser --gecos "" -H -s /sbin/nologin -G tinyproxy --disabled-password ${TINYUSER}
+        fi
+        echo "${TINYUSER}:${TINYPASS}" |chpasswd
     fi
+}
+
+getTinyCred(){
+  TCREDS_SECRET_FILE=/run/secrets/TINY_CREDS
+  if [[ -f ${TCREDS_SECRET_FILE} ]]; then
+    TINYUSER=$(head -1 ${TCREDS_SECRET_FILE})
+    TINYPASS=$(tail -1 ${TCREDS_SECRET_FILE})
+  fi
+  if [[ -n ${TINYUSER:-''} ]] && [[ -n ${TINYPASS:-''} ]]; then
+    TINYCRED="${TINYUSER}:${TINYPASS}@"
+  else
+    TINYCRED=""
+  fi
+  echo "${TINYCRED}"
 }

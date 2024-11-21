@@ -1,7 +1,7 @@
 .idea/**
 ./*.sh
 *.iml
-docker-compose.yml
+compose.yml
 nordvpn_*
 !myconfig
 myconfig/
