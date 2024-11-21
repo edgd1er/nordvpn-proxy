@@ -219,3 +219,13 @@ getStatusFromNordvpn2() {
     fi
     return 0
 }
+
+createUserForAuthifNeeded(){
+    TINYUSER=${1:-'NotAUser'}
+    #expected error when user does not exist
+    tinyid=$(id -u ${TINYUSER}) || true
+    if [[ -z ${tinyid} ]]; then
+        adduser --gecos "" -H --disabled-password -s /sbin/nologin -G tinyproxy ${TINYUSER}
+        addgroup ${TINYUSER} tinyproxy
+    fi
+}
