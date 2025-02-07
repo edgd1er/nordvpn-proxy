@@ -23,6 +23,10 @@ Healtcheck tests dns resolution, openvpn status (connected), tinyproxy listening
 Protected status was checked through nordvpn api, as the endpoint was removed, this image does not test its protected status.
 As long as openvpn returns a connected status, vpn is up.
 
+Please note that an image called `edgd1er/nordlynx-proxy` exists also.
+* PRO: can use wireguard or openvpn, much higher rates when connecting using wireguard
+* CON: nordvpn client is proprietary. image is much bigger (7x).
+
 ## What is this?
 
 This image is largely based on [jeroenslot/nordvpn-proxy](https://github.com/Joentje/nordvpn-proxy) with dante free socks server added. 
@@ -147,12 +151,45 @@ script checks for:
 * warns if openvpn remote ip seems not coherent
 
 if any of these fail, services are restarted.
-
+!
 dockerfile healtcheck:
 * dns check
 * check openvpn status
 * check if eth0 ip has changed, change tinyproxy listen address if needed.
 * check ip through proxies
+
+## Debugging
+
+if ever the container is not running healthy, there are few aliases defined for first tests:
+* checkip: get external ip ( ip should be different from your isp'ip )
+* checkhttp: get external ip through http proxy (ip should be different from your isp'ip)
+* checksocks: get external ip throuch socks proxy ( ip should be different from your isp'ip)
+* gettiny: show http proxy conf ( check listen address )
+* getdante: show socks prox conf ( check listen address )
+* dltest: download a 100M file to check download rate.
+
+run in the container:
+```
+source /etc/service/utils.sh
+# echo should return 0 meaning vpn is up.
+getStatusFromNordvpn
+echo $?
+getStatusFromNordvpn2
+echo $?
+#should return external ip (vpn) not yours
+checkip
+#should return the same ip as checkip 
+testhproxy
+testsproxy
+# Display listen ip for http proxy
+getTinyListen
+# get tiny credentials if any
+getTinyCred
+# get http and socks proxy conf
+getTinyConf
+getDanteConf
+```
+
 
 # Kill switch
 When vpn interface (tun) is up, default route through unprotected interface (eth0) is removed.

@@ -89,10 +89,12 @@ testProxies() {
 }
 
 getInterfacesInfo() {
-    docker compose exec ${CONTAINER} bash -c "ip -j a |jq  '.[]|select(.ifname|test(\"wg0|tun|nordlynx\"))|.ifname'"
-    docker compose exec ${CONTAINER} echo -e "eth0: $(ip -j a | jq -r '.[] |select(.ifname=="eth0")| .addr_info[].local')\n wg0: $(ip -j a | jq -r '.[] |select(.ifname=="wg0")| .addr_info[].local')\nnordlynx: $(ip -j a | jq -r '.[] |select(.ifname=="nordlynx")| .addr_info[].local')"
-    docker compose exec ${CONTAINER} bash -c 'echo "nordlynx conf: $(wg showconf nordlynx 2>/dev/null)"'
-    docker compose exec ${CONTAINER} bash -c 'echo "wg conf: $(wg showconf wg0 2>/dev/null)"'
+    docker compose exec ${CONTAINER} bash -c 't=$(ip -j a |jq -r ".[]|select(.ifname|test(\"wg0|tun|nordlynx\"))|.ifname");echo "vpn interface: ${t}"'
+    docker compose exec proxy bash -c 'i=$(ip -j a | jq -r ".[] |select(.ifname==\"eth0\")| .addr_info[].local"); echo "eth0: $i"'
+    #docker compose exec proxy bash -c 'i=$(ip -j a | jq -r ".[] |select(.ifname==\"wg0\")| .addr_info[].local"); echo "wg0: $i"'
+    #docker compose exec ${CONTAINER} bash -c 'i=$(ip -j a | jq -r ".[] |select(.ifname==\"nordlynx\")| .addr_info[].local"); echo nordlynx: $i'
+    #docker compose exec ${CONTAINER} bash -c 'echo "nordlynx conf: $(wg showconf nordlynx 2>/dev/null)"'
+    #docker compose exec ${CONTAINER} bash -c 'echo "wg conf: $(wg showconf wg0 2>/dev/null)"'
 }
 
 #Main

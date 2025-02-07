@@ -145,11 +145,6 @@ testhproxy() {
 
 testsproxy() {
     TCREDS=$(getTinyCred)
-    if [[ -f ${TCF} ]]; then
-        TCREDS="$(head -1 ${TCF}):$(tail -1 ${TCF})@"
-    else
-        TCREDS=""
-    fi
     IP=$(curl -m5 -sqx socks5://${TCREDS}${HOSTNAME}:${DANTE_PORT} "https://ifconfig.me/ip")
     if [[ $? -eq 0 ]]; then
         echo "IP is ${IP}"
