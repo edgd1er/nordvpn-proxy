@@ -42,6 +42,31 @@ The main advantage is that you get the best recommendation for each selection.
 
 ## Usage
 
+### Step 1 - Get NordVPN service username and password (NOT your email and pw)
+
+Nordvpn openvpn credentials are to be found following that procedure:
+* Go to NordVPN website and log in
+* Under accounts - Services - click NordVPN
+* Click - Set up NordVPN manually - at the bottom right of the page.
+    * You will receive a verification code in your email that you use for NordVPN services. Type the code in the popup window the preceded the email check.
+* Copy the credentials using the “Copy” buttons on the right for your new encrypted user name and password and paste them in nordvpn_creds
+
+### Step 2 - Start the container
+
+#### Option 1 - interactive on the command line (for testing and running temporarily)
+
+Make sure you customise the parameters:
+* correct LOCAL_NETWORK mask otherwise the proxy is only available localhost
+* correct NORDVPN_USER (see Step 1)
+* correct NORDVPN_PASS (see Step 1)
+* your preferred NORDVPN_COUNTRY
+
+```
+docker run -it --rm -p 1081:1080 -p 8888:8888 --cap-add NET_ADMIN -e LOCAL_NETWORK=10.0.0.0/24 -e NORDVPN_USER=xxxSOME_SERVICE_USERNAMExxx -e NORDVPN_PASS=xxxSOME_SERVICE_PASSWORDxxx -e NORDVPN_COUNTRY=Australia -e NORDVPN_PROTOCOL=udp -e NORDVPN_CATEGORY=p2p -e DEBUG=0 edgd1er/nordvpn-proxy
+```
+
+#### Option 2 - set up the container
+
 [Script](https://github.com/haugene/docker-transmission-openvpn/blob/master/openvpn/nordvpn/updateConfigs.sh) for OpenVpn config download is base on the one developped for [haugene](https://github.com/haugene/docker-transmission-openvpn) 's docker transmission openvpn
 https://haugene.github.io/docker-transmission-openvpn/provider-specific/
 
@@ -66,7 +91,7 @@ The container is expecting three parameters to select the vpn server:
 * WRITE_OVPN_STATUS=(0|1): write openvpn status (CONNECTED/NOTCONNECTED) to /var/tmp/ovpn_status. you may mount the file to get the openvpn status outside the container.
 * WAITSEC=30, default value, time to wait between two vpn login.
 
-# How to run the container
+#### How to run the container
 
 * Just copy/paste the grey text block starting with version 3.8. to a file named compose.yml
 * Set values for NORDVPN_TECHNOLOGY, NORDVPN_PROTOCOL, NORDVPN_COUNTRY
@@ -78,13 +103,6 @@ nordvpn_creds:
 thisismyusername
 thisismypassword
 ```
-
-Nordvpn openvpn credentials are to be found following that procedure:
-* Go to NordVPN website and log in
-* Under accounts - Services - click NordVPN
-* Click - Set up NordVPN manually - at the bottom right of the page.
-* You will receive a verification code in your email that you use for NordVPN services. Type the code in the popup window the preceded the email check.
-* Copy the credentials using the “Copy” buttons on the right for your new encrypted user name and password and paste them in nordvpn_creds
 
 * start the container: docker compose up -d
 
