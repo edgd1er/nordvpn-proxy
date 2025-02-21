@@ -65,6 +65,35 @@ Make sure you customise the parameters:
 docker run -it --rm -p 1081:1080 -p 8888:8888 --cap-add NET_ADMIN -e LOCAL_NETWORK=10.0.0.0/24 -e NORDVPN_USER=xxxSOME_SERVICE_USERNAMExxx -e NORDVPN_PASS=xxxSOME_SERVICE_PASSWORDxxx -e NORDVPN_COUNTRY=Australia -e NORDVPN_PROTOCOL=udp -e NORDVPN_CATEGORY=p2p -e DEBUG=0 edgd1er/nordvpn-proxy
 ```
 
+It will start a SOCKS proxy on host:1081 and a HTTPs proxy on host:8888.
+
+Default user and pass for the proxy is username:password
+
+##### Simple Python script to test proxy
+
+```
+import requests
+proxy_url = "http://username:password@127.0.0.1:8888"
+
+def get_public_ip():
+     try:
+         response = requests.get(
+             'https://api.ipify.org?format=json',
+             proxies={
+                 'http': proxy_url,
+                 'https': proxy_url,
+             }
+         )
+         response.raise_for_status()
+         ip_data = response.json()
+         return ip_data['ip']
+     except requests.RequestException as e:
+         return f"Error: {e}"
+
+public_ip = get_public_ip()
+print(f"Your public IP address is: {public_ip}")
+```
+
 #### Option 2 - set up the container
 
 [Script](https://github.com/haugene/docker-transmission-openvpn/blob/master/openvpn/nordvpn/updateConfigs.sh) for OpenVpn config download is base on the one developped for [haugene](https://github.com/haugene/docker-transmission-openvpn) 's docker transmission openvpn
