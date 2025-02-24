@@ -9,6 +9,13 @@
 ![Docker Stars](https://badgen.net/docker/stars/edgd1er/nordvpn-proxy?icon=docker&label=Stars)
 ![ImageLayers](https://badgen.net/docker/layers/edgd1er/nordvpn-proxy?icon=docker&label=Layers)
 
+-------------------------------------------------------------------------------------------------------------
+# Project in maintenance mode
+
+Only major problems will be fixed.
+Please prefer [nordlynx-proxy](https://github.com/edgd1er/nordlynx-proxy) project, it has wireguard and openvpn technology and x10 traffic rate.
+
+-------------------------------------------------------------------------------------------------------------
 
 This is a NordVPN client docker container using openvpn that use the recommended NordVPN servers, and opens a SOCKS5 (dante server) and http proxy (tinyproxy).
 
@@ -122,7 +129,7 @@ The container is expecting three parameters to select the vpn server:
 
 #### How to run the container
 
-* Just copy/paste the grey text block starting with version 3.8. to a file named compose.yml
+* Just copy/paste the grey text block starting with services to a file named compose.yml
 * Set values for NORDVPN_TECHNOLOGY, NORDVPN_PROTOCOL, NORDVPN_COUNTRY
 * adapt if needed LOCAL_NETWORK, TZ
 * create file nordvpn_creds containing your login in the first line and your password in the second line.
@@ -141,7 +148,7 @@ nordvpn-proxy  | INFO: OPENVPN: up: starting tinyproxy
 .....
 nordvpn-proxy  | ok: run: tinyproxy: (pid 103) 1s, normally down
 
-see docker-compose-dist.yml for an example to setup and run this image. 
+see compose-dist.yml for an example to setup and run this image. 
 
 ```yaml
 services:
