@@ -1,4 +1,4 @@
-ARG VER=3.21
+ARG VER=3.22
 FROM alpine:${VER}
 LABEL maintainer=edgd1er
 
